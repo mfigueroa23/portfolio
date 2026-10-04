@@ -1,43 +1,30 @@
 #!/usr/bin/env bash
-# Fails when a server-rendered page needs a CSP script hash that the prerendered pages do not
-# have. nginx's CSP only lists the hashes of the prerendered build (docker/csp-hashes.pl), so
-# an extra inline script in an SSR page would be blocked in production.
+# Runs, outside Docker, the same CSP steps as the image build: renders the server-rendered
+# routes with the built server (docker/render-ssr-pages.mjs), computes the hashes of the
+# prerendered site plus those pages (docker/csp-hashes.pl) and fails when an inline script of
+# an SSR page is missing from the resulting CSP, which nginx would then block.
 #
 # Usage (after `pnpm build`): scripts/check-ssr-csp.sh
 set -euo pipefail
 
 DIST=dist/devsonic.cl
-PORT=${CSP_CHECK_PORT:-4100}
 work=$(mktemp -d)
+trap 'rm -rf "$work"' EXIT
 
-PORT=$PORT node "$DIST/server/server.mjs" >"$work/server.log" 2>&1 &
-server=$!
-trap 'kill "$server" 2>/dev/null || true; rm -rf "$work"' EXIT
+CSP_RENDER_PORT=${CSP_CHECK_PORT:-4100} node docker/render-ssr-pages.mjs "$DIST/server/server.mjs" "$work/ssr"
 
-for _ in $(seq 1 50); do
-  curl -s -o /dev/null "http://localhost:$PORT/" && break
-  sleep 0.2
-done
+echo '__CSP_SCRIPT_HASHES__' >"$work/nginx.conf"
+perl docker/csp-hashes.pl "$DIST/browser" "$work/ssr" "$work/nginx.conf" >/dev/null
 
-# Without -f: a 503 page (API unreachable) still carries the same bootstrap scripts.
-mkdir "$work/ssr"
-curl -s "http://localhost:$PORT/projects" -o "$work/ssr/projects.html"
-curl -s "http://localhost:$PORT/blog" -o "$work/ssr/blog.html"
+echo '__CSP_SCRIPT_HASHES__' >"$work/ssr.conf"
+perl docker/csp-hashes.pl "$work/ssr" "$work/ssr.conf" >/dev/null
 
-hashes() {
-  local conf="$work/conf-$2"
-  echo '__CSP_SCRIPT_HASHES__' >"$conf"
-  perl docker/csp-hashes.pl "$1" "$conf" >/dev/null
-  tr ' ' '\n' <"$conf" | grep "^'sha256-" | sort -u
-}
-
-hashes "$DIST/browser" static >"$work/static.txt"
-hashes "$work/ssr" ssr >"$work/ssr.txt"
-missing=$(comm -23 "$work/ssr.txt" "$work/static.txt")
+missing=$(comm -23 <(tr ' ' '\n' <"$work/ssr.conf" | grep "^'sha256-" | sort -u) \
+  <(tr ' ' '\n' <"$work/nginx.conf" | grep "^'sha256-" | sort -u))
 
 if [ -n "$missing" ]; then
-  echo "SSR pages need CSP script hashes the prerendered pages do not have:" >&2
+  echo "SSR pages need CSP script hashes missing from the generated CSP:" >&2
   echo "$missing" >&2
   exit 1
 fi
-echo "SSR pages use only the prerendered CSP script hashes ($(wc -l <"$work/ssr.txt" | tr -d ' ') checked)."
+echo "The generated CSP covers every inline script of the SSR pages."

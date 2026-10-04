@@ -10,7 +10,7 @@ Estructura: `src/app/core/` (config, interfaces, servicios y utilidades), `src/a
 
 - Instalar: `pnpm install`
 - Ejecutar: `pnpm start` (dev) · `pnpm build` (producción) · `node dist/devsonic.cl/server/server.mjs` (servidor SSR, `PORT` por defecto 4000); ambos pasan por `scripts/ng.mjs`, que toma `API_URL` del entorno o de `.env` (copiar `.env.example`) y, si no está, usa `https://api.figueroa-sanchez.com`. En Vercel: Project Settings → Environment Variables → `API_URL`. En el CI: secret `API_URL` del repo, que `release.yaml` pasa al build y a la imagen.
-- Imágenes Docker: `docker build --target static --build-arg API_URL=<url> .` (nginx) y `docker build --target ssr .` (servidor SSR); `static` pone el origen de la API en el CSP `connect-src` de `nginx.conf` (placeholder `__API_ORIGIN__`); debe ser la misma URL usada en `pnpm build`. Sin el argumento, usa producción.
+- Imágenes Docker: `docker build --target static --build-arg API_URL=<url> .` (nginx) y `docker build --target ssr .` (servidor SSR); `static` pone el origen de la API en el CSP `connect-src` de `nginx.conf` (placeholder `__API_ORIGIN__`); debe ser la misma URL usada en `pnpm build`. Sin el argumento, usa producción. El CSP `script-src` lleva los hashes de los scripts inline del sitio prerenderizado y de las rutas SSR: el stage `ssr-pages` renderiza esas rutas con el servidor construido (`docker/render-ssr-pages.mjs`) y `docker/csp-hashes.pl` hashea ambos; `scripts/check-ssr-csp.sh` repite esos pasos en CI.
 - Tests: `pnpm test`
 - Lint/formato: `pnpm exec prettier --check .` (`--write` para corregir)
 

@@ -1,15 +1,17 @@
 #!/usr/bin/env perl
-# Computes CSP sha256 hashes for every inline script and inline event handler in the
-# prerendered HTML and injects them into nginx.conf (placeholder __CSP_SCRIPT_HASHES__).
+# Computes CSP sha256 hashes for every inline script and inline event handler in the HTML of
+# the given directories (the prerendered site and the pages rendered by render-ssr-pages.mjs)
+# and injects them into nginx.conf (placeholder __CSP_SCRIPT_HASHES__).
 #
-# Usage: perl csp-hashes.pl <site-dir> <nginx.conf>
+# Usage: perl csp-hashes.pl <html-dir>... <nginx.conf>
 use strict;
 use warnings;
 use Digest::SHA qw(sha256_base64);
 use File::Find;
 
-my ($site, $conf) = @ARGV;
-die "usage: $0 <site-dir> <nginx.conf>\n" unless $site && $conf;
+die "usage: $0 <html-dir>... <nginx.conf>\n" unless @ARGV >= 2;
+my $conf = pop @ARGV;
+my @sites = @ARGV;
 
 my %js_types = map { $_ => 1 } ('', 'text/javascript', 'application/javascript', 'module');
 my (%hashes, $has_handlers);
@@ -31,8 +33,11 @@ sub decode_entities {
 }
 
 my @pages;
-find(sub { push @pages, $File::Find::name if /\.html$/ }, $site);
-die "no HTML files found in $site\n" unless @pages;
+for my $site (@sites) {
+  my $before = @pages;
+  find(sub { push @pages, $File::Find::name if /\.html$/ }, $site);
+  die "no HTML files found in $site\n" if @pages == $before;
+}
 
 for my $page (@pages) {
   open my $fh, '<:raw', $page or die "cannot read $page: $!\n";
