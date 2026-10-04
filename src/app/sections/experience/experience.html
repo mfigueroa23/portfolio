@@ -31,7 +31,7 @@
 
         <!-- Experience Items -->
         <section class="space-y-12">
-          @for (exp of experiences(); track $index; let even = $even) {
+          @for (exp of experiences(); track exp.id; let even = $even) {
             <article
               class="relative grid md:grid-cols-2 gap-8 animate-fade-in"
               [style.animationDelay]="($index + 1) * 150 + 'ms'"
@@ -72,6 +72,17 @@
             </article>
           }
         </section>
+      </article>
+
+      <!-- View More CTA -->
+      <article class="text-center mt-16 animate-fade-in animation-delay-500">
+        <a
+          href="/experience"
+          class="inline-flex items-center justify-center gap-2 min-h-11 px-6 rounded-full border border-border text-foreground text-sm font-medium hover:border-primary hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        >
+          View more <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </a>
+        <p class="text-sm text-muted-foreground mt-3">Full history, details and certifications</p>
       </article>
     } @else {
       <!-- Empty State -->

@@ -17,8 +17,12 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/project-detail/project-detail').then((comp) => comp.ProjectDetail),
   },
-  // Answer 404 until their pages exist.
-  { path: 'experience', loadComponent: notFound },
+  {
+    path: 'experience',
+    loadComponent: () =>
+      import('./pages/experience-page/experience-page').then((comp) => comp.ExperiencePage),
+  },
+  // Answers 404 until its page exists.
   { path: 'blog', loadComponent: notFound },
   { path: '**', loadComponent: notFound },
 ];
