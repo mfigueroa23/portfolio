@@ -36,3 +36,9 @@ jobs:
 
       - name: 'Run Tests'
         run: 'pnpm test --watch=false'
+
+      - name: 'Build Application'
+        run: 'pnpm run build'
+
+      - name: 'Check SSR CSP Hashes'
+        run: 'scripts/check-ssr-csp.sh'
