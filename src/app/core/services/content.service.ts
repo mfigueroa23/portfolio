@@ -102,11 +102,16 @@ export class ContentService {
     return this.resource<Certification[]>(() => `${API_URL}/content/certifications`);
   }
 
-  /** A page of published posts, optionally of one tag (its URL key). */
-  public postPage(page: () => number, tag: () => string | null): ContentResource<PostPage> {
+  /**
+   * A page of published posts, optionally of one tag (its URL key). A `null` page (an
+   * invalid page number in the URL) sends no request.
+   */
+  public postPage(page: () => number | null, tag: () => string | null): ContentResource<PostPage> {
     return this.resource<PostPage>(() => {
+      const number = page();
+      if (number === null) return undefined;
       const key = tag();
-      const query = key ? `page=${page()}&tag=${encodeURIComponent(key)}` : `page=${page()}`;
+      const query = key ? `page=${number}&tag=${encodeURIComponent(key)}` : `page=${number}`;
       return `${API_URL}/content/posts?${query}`;
     });
   }
@@ -125,8 +130,11 @@ export class ContentService {
    * hydration reuses it; unlike `collection()`, there is no browser refetch because every
    * request to these routes is already rendered with fresh content (RF-120, RF-129).
    */
-  private resource<T>(url: () => string): ContentResource<T> {
-    const ref = httpResource<T>(() => ({ url: url(), timeout: LOAD_TIMEOUT_MS }));
+  private resource<T>(url: () => string | undefined): ContentResource<T> {
+    const ref = httpResource<T>(() => {
+      const target = url();
+      return target === undefined ? undefined : { url: target, timeout: LOAD_TIMEOUT_MS };
+    });
     const error = computed<ApiError | null>(() => {
       const failure = ref.error();
       if (!failure) return null;

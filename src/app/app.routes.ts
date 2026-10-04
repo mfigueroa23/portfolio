@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
 const notFound = () => import('./pages/not-found/not-found').then((comp) => comp.NotFound);
+const blogPage = () => import('./pages/blog/blog-page').then((comp) => comp.BlogPage);
 
 export const routes: Routes = [
   {
@@ -22,7 +23,13 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/experience-page/experience-page').then((comp) => comp.ExperiencePage),
   },
-  // Answers 404 until its page exists.
-  { path: 'blog', loadComponent: notFound },
+  { path: 'blog', loadComponent: blogPage },
+  { path: 'blog/page/:page', loadComponent: blogPage },
+  { path: 'blog/tag/:tag', loadComponent: blogPage },
+  { path: 'blog/tag/:tag/page/:page', loadComponent: blogPage },
+  {
+    path: 'blog/:slug',
+    loadComponent: () => import('./pages/post/post-page').then((comp) => comp.PostPage),
+  },
   { path: '**', loadComponent: notFound },
 ];

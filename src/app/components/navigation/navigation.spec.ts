@@ -18,4 +18,15 @@ describe('Navigation', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('links to the blog', () => {
+    const element: HTMLElement = fixture.nativeElement;
+    expect(element.querySelector('a[href="/blog"]')?.textContent?.trim()).toBe('Blog');
+  });
+
+  it('keeps the section links pointing at the home, so they work from any page', () => {
+    const sections = component.navLinks.filter((link) => link.label !== 'Blog');
+    expect(sections.length).toBeGreaterThan(0);
+    sections.forEach((link) => expect(link.href).toMatch(/^\/#[a-z]+$/));
+  });
 });

@@ -6,6 +6,7 @@ import { Button } from '../../components/button/button';
 import { MarkdownBody } from '../../components/markdown-body/markdown-body';
 import { ContentService } from '../../core/services/content.service';
 import { SeoService } from '../../core/services/seo.service';
+import { accentTitle } from '../../core/utils/text';
 import { NotFound } from '../not-found/not-found';
 import { Unavailable } from '../unavailable/unavailable';
 
@@ -23,11 +24,7 @@ export class ProjectDetail {
   protected readonly project = inject(ContentService).project(() => this.slug());
 
   /** The title with its last word in the serif accent, as the site's headings. */
-  protected readonly heading = computed(() => {
-    const words = (this.project.value()?.title ?? '').split(' ');
-    const accent = words.length > 1 ? words.pop() : '';
-    return { lead: words.join(' '), accent };
-  });
+  protected readonly heading = computed(() => accentTitle(this.project.value()?.title ?? ''));
 
   constructor() {
     const seo = inject(SeoService);

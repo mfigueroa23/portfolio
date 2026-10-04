@@ -234,6 +234,20 @@ describe('ContentService content pages', () => {
     expect(tagged.value()?.tag).toBe('Next.js');
   });
 
+  it('does not ask for a page of posts when the page number is invalid', async () => {
+    const invalid = create(() =>
+      service.postPage(
+        () => null,
+        () => null,
+      ),
+    );
+    TestBed.tick();
+    http.expectNone((req) => req.url.startsWith(`${API_URL}/content/posts`));
+    await settle();
+    expect(invalid.value()).toBeUndefined();
+    expect(invalid.error()).toBeNull();
+  });
+
   it('loads one post by its slug, encoding it', async () => {
     const post = create(() => service.post(() => 'a b'));
     TestBed.tick();
