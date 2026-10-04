@@ -8,13 +8,14 @@ describe('Projects', () => {
   const items: Project[] = [
     {
       id: 1,
-      position: 0,
+      slug: 'portfolio',
       title: 'Portfolio',
       description: 'This site.',
       image: '/projects/portfolio.webp',
       tags: ['Angular', 'Tailwind'],
       link: 'https://example.com',
       github: 'https://example.com/repo',
+      publishedAt: '2026-10-01T12:00:00.000Z',
     },
   ];
   let collection: ReturnType<typeof vi.fn>;

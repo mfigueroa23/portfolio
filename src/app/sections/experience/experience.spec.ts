@@ -8,7 +8,7 @@ describe('Experience', () => {
   const items: ExperienceItem[] = [
     {
       id: 1,
-      position: 0,
+      startDate: '2026-01',
       period: '2026 — Present',
       role: 'Platform Engineer',
       company: 'Acme',
@@ -18,7 +18,7 @@ describe('Experience', () => {
     },
     {
       id: 2,
-      position: 1,
+      startDate: '2024-03',
       period: '2024 — 2025',
       role: 'Support Agent',
       company: 'Globex',
