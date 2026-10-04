@@ -91,6 +91,18 @@ describe('ContentService', () => {
       expect(items()).toBe(before);
     });
 
+    it('adds the query parameters to both requests', () => {
+      service.collection<Technology>('projects', { limit: 4 });
+      const limited = `${API_URL}/content/projects?limit=4`;
+      http
+        .expectOne((req) => req.urlWithParams === limited && req.transferCache !== false)
+        .flush([]);
+      TestBed.tick();
+      http
+        .expectOne((req) => req.urlWithParams === limited && req.transferCache === false)
+        .flush([]);
+    });
+
     it('keeps the previous items when the refetch fails', () => {
       const items = service.collection<Technology>('technologies');
       initialRequest().flush(initial);

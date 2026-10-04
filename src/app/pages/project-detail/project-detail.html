@@ -1,0 +1,91 @@
+@switch (project.error()) {
+  @case ('notFound') {
+    <app-not-found />
+  }
+  @case ('unavailable') {
+    <app-unavailable />
+  }
+}
+
+@if (project.value(); as item) {
+  <article class="pt-32 md:pt-40 pb-28">
+    <div class="container mx-auto px-6">
+      <a
+        href="/projects"
+        class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+      >
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All projects
+      </a>
+
+      <header class="mt-8 mb-10 flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+        <div class="max-w-3xl">
+          <h1 class="text-4xl md:text-5xl font-bold text-secondary-foreground">
+            {{ heading().lead }}
+            @if (heading().accent) {
+              <span class="font-serif italic font-normal text-white">{{ heading().accent }}</span>
+            }
+          </h1>
+          <p class="text-muted-foreground text-lg mt-5">{{ item.description }}</p>
+          <div class="flex flex-wrap gap-2 mt-6">
+            @for (tag of item.tags; track $index) {
+              <span
+                class="px-4 py-1.5 rounded-full bg-surface text-xs font-medium border border-border/50 text-muted-foreground"
+                >{{ tag }}</span
+              >
+            }
+          </div>
+        </div>
+
+        @if (item.link || item.github) {
+          <div class="flex flex-wrap gap-3 shrink-0">
+            @if (item.link) {
+              <a
+                [href]="item.link"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center justify-center gap-2 min-h-11 px-6 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                Live site
+                <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+              </a>
+            }
+            @if (item.github) {
+              <a
+                [href]="item.github"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center justify-center gap-2 min-h-11 px-6 rounded-full border border-border text-foreground text-sm font-medium hover:border-primary hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Source code
+              </a>
+            }
+          </div>
+        }
+      </header>
+
+      <img
+        [src]="item.image"
+        [alt]="item.title"
+        class="w-full aspect-video object-cover rounded-2xl border border-border"
+      />
+    </div>
+
+    @if (item.bodyHtml) {
+      <div class="max-w-3xl mx-auto px-6 mt-14">
+        <app-markdown-body [html]="item.bodyHtml" />
+      </div>
+    }
+
+    <footer
+      class="max-w-3xl mx-auto px-6 mt-16 pt-8 border-t border-border flex flex-wrap items-center justify-between gap-4"
+    >
+      <a
+        href="/projects"
+        class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+      >
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All projects
+      </a>
+      <app-button size="sm" href="/#contact">Contact Me</app-button>
+    </footer>
+  </article>
+}

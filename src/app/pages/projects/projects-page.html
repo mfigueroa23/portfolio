@@ -1,0 +1,43 @@
+@if (projects.error()) {
+  <app-unavailable />
+} @else {
+  <section class="container mx-auto px-6 pt-32 md:pt-40 pb-28">
+    <a
+      href="/"
+      class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+    >
+      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to home
+    </a>
+
+    <header class="max-w-3xl mt-8 mb-14">
+      <p class="text-secondary-foreground text-sm font-medium tracking-wider uppercase">All Work</p>
+      <h1 class="text-4xl md:text-5xl font-bold mt-4 mb-6 text-secondary-foreground">
+        Every project,
+        <span class="font-serif italic font-normal text-white">in depth.</span>
+      </h1>
+      <p class="text-muted-foreground">
+        Each card opens a full write-up: the problem, the architecture and what I learned.
+      </p>
+    </header>
+
+    @if (projects.value(); as items) {
+      @if (items.length) {
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          @for (project of items; track project.id) {
+            <app-project-card [project]="project" [headingLevel]="2" />
+          }
+        </div>
+      } @else {
+        <article class="glass rounded-2xl p-12 max-w-2xl mx-auto text-center">
+          <div
+            class="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4"
+          >
+            <i class="fa-solid fa-code text-2xl text-primary" aria-hidden="true"></i>
+          </div>
+          <h2 class="text-xl font-semibold mb-2">Projects coming soon</h2>
+          <p class="text-sm text-muted-foreground">I'm preparing this section.</p>
+        </article>
+      }
+    }
+  </section>
+}

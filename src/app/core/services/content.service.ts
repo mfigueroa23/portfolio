@@ -41,14 +41,18 @@ export class ContentService {
   private readonly injector = inject(Injector);
 
   /**
-   * Returns the items of a content collection as a signal.
+   * Returns the items of a content collection as a signal, with optional query parameters
+   * (e.g. `{ limit: 4 }`).
    *
    * The first GET runs during prerender and its response is embedded in the HTML by the
    * HTTP transfer cache, so hydration reuses it without a flash. Once rendered in the
    * browser, a second GET bypasses that cache to pick up content edited after the release.
    */
-  public collection<T>(name: ContentCollection): Signal<T[]> {
-    const url = `${API_URL}/content/${name}`;
+  public collection<T>(name: ContentCollection, params?: Record<string, number>): Signal<T[]> {
+    const query = new URLSearchParams(
+      Object.entries(params ?? {}).map(([key, value]) => [key, String(value)]),
+    ).toString();
+    const url = `${API_URL}/content/${name}${query ? `?${query}` : ''}`;
     const items = signal<T[]>([]);
 
     this.http
