@@ -1,6 +1,9 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { Experience as ExperienceItem } from '../../core/interfaces/content';
 import { ContentService } from '../../core/services/content.service';
+
+/** How many of the most recent entries the home shows (RF-68). */
+const HOME_ENTRIES = 4;
 
 @Component({
   imports: [],
@@ -9,5 +12,7 @@ import { ContentService } from '../../core/services/content.service';
   templateUrl: './experience.html',
 })
 export class Experience {
-  public readonly experiences = inject(ContentService).collection<ExperienceItem>('experiences');
+  // The API returns current entries first, then by start date (RF-141).
+  private readonly all = inject(ContentService).collection<ExperienceItem>('experiences');
+  public readonly experiences = computed(() => this.all().slice(0, HOME_ENTRIES));
 }

@@ -32,6 +32,9 @@ jobs:
         env:
           API_URL: ${{ secrets.API_URL }}
 
+      - name: 'Check SSR CSP Hashes'
+        run: 'scripts/check-ssr-csp.sh'
+
       - name: 'Upload Build'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
@@ -45,6 +48,7 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.value }}
       digest: ${{ steps.build.outputs.digest }}
+      ssr-digest: ${{ steps.build-ssr.outputs.digest }}
     steps:
       - name: 'Checkout Code'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -76,6 +80,7 @@ jobs:
         id: build
         with:
           context: .
+          target: static
           platforms: linux/amd64,linux/arm64
           build-args: |
             API_URL=${{ secrets.API_URL }}
@@ -84,6 +89,19 @@ jobs:
             ${{ vars.DOCKERHUB_USERNAME }}/portfolio:latest
             ${{ vars.DOCKERHUB_USERNAME }}/portfolio:${{ steps.version.outputs.value }}
             ${{ vars.DOCKERHUB_USERNAME }}/portfolio:sha-${{ github.sha }}
+
+      - name: 'Build Multi-Platform SSR Image'
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc
+        id: build-ssr
+        with:
+          context: .
+          target: ssr
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ${{ vars.DOCKERHUB_USERNAME }}/portfolio-ssr:latest
+            ${{ vars.DOCKERHUB_USERNAME }}/portfolio-ssr:${{ steps.version.outputs.value }}
+            ${{ vars.DOCKERHUB_USERNAME }}/portfolio-ssr:sha-${{ github.sha }}
 
   deploy:
     name: 'Application Deployment'
@@ -99,7 +117,7 @@ jobs:
         uses: steebchen/kubectl@7c4c70d551952e40881998b840e16d4d9824a54f
         with:
           config: ${{ secrets.KUBE_CONFIG }}
-          command: set image deployment/portfolio portfolio=${{ vars.DOCKERHUB_USERNAME }}/portfolio@${{ needs.package.outputs.digest }} -n portfolio
+          command: set image deployment/portfolio portfolio=${{ vars.DOCKERHUB_USERNAME }}/portfolio@${{ needs.package.outputs.digest }} ssr=${{ vars.DOCKERHUB_USERNAME }}/portfolio-ssr@${{ needs.package.outputs.ssr-digest }} -n portfolio
 
       - name: 'Verify Deployment'
         uses: steebchen/kubectl@7c4c70d551952e40881998b840e16d4d9824a54f

@@ -1,6 +1,6 @@
 {
   "name": "Portfolio",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "author": {
     "name": "Marco Antonio Figueroa Sanchez",
     "email": "marco@figueroa-sanchez.com"
@@ -24,6 +24,7 @@
     "@angular/platform-server": "^22.1.0",
     "@angular/router": "^22.1.0",
     "@angular/ssr": "^22.1.8",
+    "mermaid": "^12.1.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },
@@ -32,6 +33,7 @@
     "@angular/cli": "^22.1.8",
     "@angular/compiler-cli": "^22.1.0",
     "@tailwindcss/postcss": "^4.1.12",
+    "@types/node": "^26.6.4",
     "jsdom": "^28.0.0",
     "postcss": "^8.5.3",
     "prettier": "^3.8.1",

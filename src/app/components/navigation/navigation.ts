@@ -20,6 +20,7 @@ export class Navigation {
     { href: '/#projects', label: 'Projects' },
     { href: '/#experience', label: 'Experience' },
     { href: '/#testimonials', label: 'Testimonials' },
+    { href: '/blog', label: 'Blog' },
   ];
   public readonly isMobileMenuOpen = signal(false);
   public readonly mobileIcon = computed(

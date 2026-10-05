@@ -1,0 +1,155 @@
+@if (unavailable()) {
+  <app-unavailable />
+} @else {
+  <section class="container mx-auto px-6 pt-32 md:pt-40 pb-28">
+    <a
+      href="/"
+      class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+    >
+      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to home
+    </a>
+
+    <header class="max-w-3xl mt-8 mb-12">
+      <p class="text-secondary-foreground text-sm font-medium tracking-wider uppercase">
+        Career Journey
+      </p>
+      <h1 class="text-4xl md:text-5xl font-bold mt-4 mb-6 text-secondary-foreground">
+        The full
+        <span class="font-serif italic font-normal text-white">story.</span>
+      </h1>
+      <p class="text-muted-foreground">
+        Open any role to read what I did there, the stack and the results.
+      </p>
+    </header>
+
+    @if (experiences.value(); as entries) {
+      @if (entries.length) {
+        <!-- Native details/summary: keyboard support, expanded state and no-JS content (D15). -->
+        <section aria-label="Experience" class="space-y-4">
+          @for (entry of entries; track entry.id) {
+            <details
+              class="group glass rounded-2xl border border-border open:border-primary/45 transition-colors"
+            >
+              <summary
+                class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 px-6 py-5 cursor-pointer list-none [&::-webkit-details-marker]:hidden rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                <span class="text-sm text-primary font-medium sm:w-44 shrink-0">{{
+                  entry.period
+                }}</span>
+                <span class="flex flex-wrap items-center gap-x-3 gap-y-1 flex-1">
+                  <span class="text-lg font-semibold">{{ entry.role }}</span>
+                  <span class="text-muted-foreground">{{ entry.company }}</span>
+                  @if (entry.current) {
+                    <span
+                      class="px-2.5 py-0.5 rounded-full bg-primary/15 text-primary text-xs font-semibold"
+                      >Current</span
+                    >
+                  }
+                </span>
+                <i
+                  class="fa-solid fa-chevron-down text-muted-foreground transition-transform group-open:rotate-180 hidden sm:block"
+                  aria-hidden="true"
+                ></i>
+              </summary>
+              <div class="px-6 pb-6 sm:pl-56 space-y-4">
+                <p class="text-muted-foreground">{{ entry.description }}</p>
+                <div class="flex flex-wrap gap-2">
+                  @for (tech of entry.technologies; track $index) {
+                    <span
+                      class="px-3 py-1 bg-surface text-xs rounded-full text-muted-foreground border border-border/50"
+                      >{{ tech }}</span
+                    >
+                  }
+                </div>
+                @if (entry.bodyHtml) {
+                  <app-markdown-body class="block pt-2" [html]="entry.bodyHtml" />
+                }
+              </div>
+            </details>
+          }
+        </section>
+      } @else {
+        <article class="glass rounded-2xl p-12 max-w-2xl mx-auto text-center">
+          <div
+            class="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4"
+          >
+            <i class="fa-solid fa-briefcase text-2xl text-primary" aria-hidden="true"></i>
+          </div>
+          <h2 class="text-xl font-semibold mb-2">Experience coming soon</h2>
+          <p class="text-sm text-muted-foreground">
+            I'm updating this section. Please check back soon.
+          </p>
+        </article>
+      }
+    }
+
+    @if (certificationCards().length) {
+      <section aria-labelledby="certifications" class="mt-24">
+        <p class="text-secondary-foreground text-sm font-medium tracking-wider uppercase">Proof</p>
+        <h2 id="certifications" class="text-3xl md:text-4xl font-bold mt-3 mb-10">
+          Certifications
+        </h2>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          @for (cert of certificationCards(); track cert.id) {
+            <article class="glass rounded-2xl p-6 flex flex-col gap-5">
+              <div class="flex items-start justify-between">
+                <span
+                  class="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center"
+                  aria-hidden="true"
+                >
+                  <i class="fa-solid fa-award text-lg text-primary"></i>
+                </span>
+                @if (cert.expired) {
+                  <span
+                    class="px-2.5 py-0.5 rounded-full bg-highlight/15 text-highlight text-xs font-semibold"
+                    >Expired</span
+                  >
+                }
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold">{{ cert.name }}</h3>
+                <p class="text-muted-foreground">{{ cert.issuer }}</p>
+              </div>
+              <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
+                <dt class="text-muted-foreground">Issued</dt>
+                <dd>{{ cert.issued }}</dd>
+                <dt class="text-muted-foreground">{{ cert.expired ? 'Expired' : 'Expires' }}</dt>
+                <dd>{{ cert.expires ?? 'No expiry' }}</dd>
+                @if (cert.credentialId) {
+                  <dt class="text-muted-foreground">Credential</dt>
+                  <dd class="break-all">{{ cert.credentialId }}</dd>
+                }
+              </dl>
+              @if (cert.fileUrl || cert.verificationUrl) {
+                <div class="flex flex-wrap gap-x-6 gap-y-2 mt-auto text-sm font-medium">
+                  @if (cert.fileUrl) {
+                    <a
+                      [href]="cert.fileUrl"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="inline-flex items-center gap-2 min-h-11 text-primary hover:underline"
+                    >
+                      View certificate
+                      <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                    </a>
+                  }
+                  @if (cert.verificationUrl) {
+                    <a
+                      [href]="cert.verificationUrl"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="inline-flex items-center gap-2 min-h-11 text-primary hover:underline"
+                    >
+                      Verify
+                      <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                    </a>
+                  }
+                </div>
+              }
+            </article>
+          }
+        </div>
+      </section>
+    }
+  </section>
+}

@@ -3,14 +3,14 @@
 ## Proyecto
 
 Portafolio personal de Marco Figueroa (marco.figueroa-sanchez.com): SPA de una página con secciones (hero, about, experience, projects, testimonials, contact).
-Angular 22 standalone con SSR en modo estático (prerender de todas las rutas) y Tailwind CSS v4. Sin código de servidor: el contenido del sitio y el formulario de contacto pasan por la API `https://api.figueroa-sanchez.com` (repo `api`); el prerender embebe el contenido y el navegador lo vuelve a pedir.
-Estructura: `src/app/core/` (config, interfaces y servicios HTTP de la API), `src/app/components/` (UI reutilizable), `src/app/sections/` (bloques de la home), `src/app/pages/` (rutas lazy), `public/` (assets estáticos).
+Angular 22 standalone con Tailwind CSS v4. La home se prerenderiza (el prerender embebe el contenido y el navegador lo vuelve a pedir); `/projects`, `/projects/<slug>`, `/experience`, `/blog*` y `/blog/rss.xml` se renderizan bajo demanda en un servidor Node (`src/server.ts`: `node:http` + `AngularNodeAppEngine`, puerto 4000) que corre como sidecar (imagen `portfolio-ssr`, target `ssr` del Dockerfile) junto al nginx (target `static`), que sirve lo estático y le hace proxy de esas rutas. El contenido y el formulario de contacto pasan por la API `https://api.figueroa-sanchez.com` (repo `api`).
+Estructura: `src/app/core/` (config, interfaces, servicios y utilidades), `src/app/components/` (UI reutilizable), `src/app/sections/` (bloques de la home), `src/app/pages/` (rutas lazy), `src/server.ts` y `src/server/` (servidor SSR y feed RSS), `public/` (assets estáticos).
 
 ## Comandos
 
 - Instalar: `pnpm install`
-- Ejecutar: `pnpm start` (dev) · `pnpm build` (producción); ambos pasan por `scripts/ng.mjs`, que toma `API_URL` del entorno o de `.env` (copiar `.env.example`) y, si no está, usa `https://api.figueroa-sanchez.com`. En Vercel: Project Settings → Environment Variables → `API_URL`. En el CI: secret `API_URL` del repo, que `release.yaml` pasa al build y a la imagen.
-- Imagen Docker: `docker build --build-arg API_URL=<url> .` pone el origen de la API en el CSP `connect-src` de `nginx.conf` (placeholder `__API_ORIGIN__`); debe ser la misma URL usada en `pnpm build`. Sin el argumento, usa producción.
+- Ejecutar: `pnpm start` (dev) · `pnpm build` (producción) · `node dist/devsonic.cl/server/server.mjs` (servidor SSR, `PORT` por defecto 4000); ambos pasan por `scripts/ng.mjs`, que toma `API_URL` del entorno o de `.env` (copiar `.env.example`) y, si no está, usa `https://api.figueroa-sanchez.com`. En Vercel: Project Settings → Environment Variables → `API_URL`. En el CI: secret `API_URL` del repo, que `release.yaml` pasa al build y a la imagen.
+- Imágenes Docker: `docker build --target static --build-arg API_URL=<url> .` (nginx) y `docker build --target ssr .` (servidor SSR); `static` pone el origen de la API en el CSP `connect-src` de `nginx.conf` (placeholder `__API_ORIGIN__`); debe ser la misma URL usada en `pnpm build`. Sin el argumento, usa producción. El CSP `script-src` lleva los hashes de los scripts inline del sitio prerenderizado y de las rutas SSR: el stage `ssr-pages` renderiza esas rutas con el servidor construido (`docker/render-ssr-pages.mjs`) y `docker/csp-hashes.pl` hashea ambos; `scripts/check-ssr-csp.sh` repite esos pasos en CI.
 - Tests: `pnpm test`
 - Lint/formato: `pnpm exec prettier --check .` (`--write` para corregir)
 
@@ -26,7 +26,8 @@ Estructura: `src/app/core/` (config, interfaces y servicios HTTP de la API), `sr
 ## Reglas
 
 - Lee docs/constitution.md y la spec activa (`docs/specs/NNN-*/spec.md`) antes de tocar código.
-- No añadir dependencias, ni cambiar a SSR dinámico, ni tocar `angular.json`/budgets sin preguntar.
+- No añadir dependencias, ni añadir rutas renderizadas en servidor, ni tocar `angular.json`/budgets sin preguntar.
+- Código de servidor solo en `src/server.ts` y `src/server/`; Mermaid se carga solo con `import()` dinámico (`MermaidService`).
 - No exponer secretos: la web no maneja secretos (viven en la API); nunca en `src/` ni en el repo.
 - No modificar contenido personal (experiencia, CV en `public/`, datos de contacto) sin indicación explícita.
 

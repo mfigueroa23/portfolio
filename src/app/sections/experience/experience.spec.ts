@@ -8,7 +8,7 @@ describe('Experience', () => {
   const items: ExperienceItem[] = [
     {
       id: 1,
-      position: 0,
+      startDate: '2026-01',
       period: '2026 — Present',
       role: 'Platform Engineer',
       company: 'Acme',
@@ -18,7 +18,7 @@ describe('Experience', () => {
     },
     {
       id: 2,
-      position: 1,
+      startDate: '2024-03',
       period: '2024 — 2025',
       role: 'Support Agent',
       company: 'Globex',
@@ -52,11 +52,33 @@ describe('Experience', () => {
     expect(element.textContent).not.toContain('Experience coming soon');
   });
 
+  const entry = (id: number): ExperienceItem => ({
+    ...items[1],
+    id,
+    role: `Role ${id}`,
+    current: false,
+  });
+
+  it('shows only the 4 most recent entries, in the API order', async () => {
+    const fixture = await render([1, 2, 3, 4, 5, 6].map(entry));
+    const roles = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('h3'), (h3) =>
+      h3.textContent?.trim(),
+    );
+    expect(roles).toEqual(['Role 1', 'Role 2', 'Role 3', 'Role 4']);
+  });
+
+  it('shows "View more" linking to /experience when there is at least one entry', async () => {
+    const fixture = await render([entry(1)]);
+    const more = (fixture.nativeElement as HTMLElement).querySelector('a[href="/experience"]');
+    expect(more?.textContent).toContain('View more');
+  });
+
   it('shows the empty state when there are no experiences', async () => {
     const fixture = await render([]);
     const element: HTMLElement = fixture.nativeElement;
 
     expect(element.textContent).toContain('Experience coming soon');
     expect(element.textContent).not.toContain('Platform Engineer');
+    expect(element.querySelector('a[href="/experience"]')).toBeNull();
   });
 });

@@ -1,0 +1,130 @@
+/* Styles of the API's Markdown HTML (plan §2 B). Unencapsulated, so scoped to .markdown-body. */
+.markdown-body {
+  font-size: 1.0625rem;
+  line-height: 1.8;
+  color: color-mix(in srgb, var(--color-foreground) 82%, transparent);
+  overflow-wrap: break-word;
+}
+.markdown-body > :first-child {
+  margin-top: 0;
+}
+.markdown-body :is(h2, h3, h4) {
+  color: var(--color-foreground);
+  scroll-margin-top: 6rem;
+}
+.markdown-body h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.875rem;
+  line-height: 1.25;
+  margin: 3rem 0 1rem;
+}
+.markdown-body :is(h3, h4) {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 2rem 0 0.75rem;
+}
+.markdown-body :is(p, ul, ol, blockquote, pre, table, figure) {
+  margin: 0 0 1.25rem;
+}
+.markdown-body ul {
+  list-style: disc;
+  padding-left: 1.4rem;
+}
+.markdown-body ol {
+  list-style: decimal;
+  padding-left: 1.4rem;
+}
+.markdown-body li {
+  margin-bottom: 0.5rem;
+}
+.markdown-body li:has(> input[type='checkbox']) {
+  list-style: none;
+}
+.markdown-body strong {
+  color: var(--color-foreground);
+}
+.markdown-body a {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.markdown-body blockquote {
+  padding: 1rem 1.25rem;
+  border-radius: 0.875rem;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  font-style: italic;
+}
+.markdown-body img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 1rem;
+}
+.markdown-body hr {
+  border-color: var(--color-border);
+  margin: 2rem 0;
+}
+.markdown-body code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.86em;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 2px 6px;
+  color: var(--color-highlight);
+}
+.markdown-body pre {
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 0.875rem;
+  padding: 1rem 1.25rem;
+  overflow-x: auto;
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+.markdown-body pre code {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--color-foreground);
+}
+.markdown-body table {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+.markdown-body :is(th, td) {
+  border: 1px solid var(--color-border);
+  padding: 0.5rem 0.875rem;
+  text-align: left;
+}
+.markdown-body th {
+  background: var(--color-surface);
+  color: var(--color-foreground);
+}
+.markdown-body :is(.hljs-keyword, .hljs-built_in, .hljs-title) {
+  color: var(--color-primary);
+}
+.markdown-body :is(.hljs-string, .hljs-number, .hljs-literal, .hljs-attr) {
+  color: var(--color-highlight);
+}
+.markdown-body :is(.hljs-comment, .hljs-meta) {
+  color: var(--color-muted-foreground);
+  font-style: italic;
+}
+.markdown-body .md-mermaid {
+  overflow-x: auto;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+.markdown-body .md-mermaid pre {
+  margin: 0;
+}
+.markdown-body .md-mermaid-error {
+  margin: 0.75rem 0 0;
+  font-size: 0.875rem;
+  color: var(--color-highlight);
+}

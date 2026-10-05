@@ -1,0 +1,101 @@
+@switch (post.error()) {
+  @case ('notFound') {
+    <app-not-found />
+  }
+  @case ('unavailable') {
+    <app-unavailable />
+  }
+}
+
+@if (post.value(); as item) {
+  <section class="container mx-auto px-6 pt-32 md:pt-40 pb-28 max-w-6xl">
+    <a
+      href="/blog"
+      class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+    >
+      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All posts
+    </a>
+
+    <header class="max-w-3xl mt-8 mb-10">
+      <div class="flex flex-wrap gap-2">
+        @for (tag of item.tags; track $index) {
+          <a
+            href="/blog/tag/{{ tagKey(tag) }}"
+            class="inline-flex items-center min-h-8 px-3 rounded-full bg-surface text-xs font-medium border border-border/50 text-muted-foreground hover:border-primary/50 hover:text-primary transition-colors"
+            >{{ tag }}</a
+          >
+        }
+      </div>
+      <h1 class="text-4xl md:text-5xl font-bold mt-6 mb-5 text-secondary-foreground">
+        {{ heading().lead }}
+        @if (heading().accent) {
+          <span class="font-serif italic font-normal text-white">{{ heading().accent }}</span>
+        }
+      </h1>
+      <p class="flex items-center gap-2 text-sm text-muted-foreground">
+        <app-local-date [iso]="item.publishedAt" />
+        <span aria-hidden="true">·</span>
+        <span>{{ item.readingMinutes }} min read</span>
+      </p>
+    </header>
+
+    @if (item.coverUrl) {
+      <img
+        [src]="item.coverUrl"
+        [alt]="item.title"
+        class="w-full aspect-video object-cover rounded-2xl border border-border mb-14"
+      />
+    }
+
+    <div
+      class="grid gap-6 items-start"
+      [class.min-[900px]:grid-cols-[minmax(0,1fr)_240px]]="toc().length"
+      [class.min-[900px]:gap-16]="toc().length"
+    >
+      <article class="min-w-0">
+        <app-markdown-body [html]="item.bodyHtml" />
+
+        @if (item.references.length) {
+          <section aria-labelledby="references" class="mt-14">
+            <h2 id="references" class="font-serif text-3xl text-foreground mb-4">References</h2>
+            <ul>
+              @for (reference of item.references; track $index) {
+                <li class="flex items-start gap-3 py-3 border-b border-border">
+                  <i class="fa-solid fa-link text-muted-foreground mt-1.5" aria-hidden="true"></i>
+                  <a
+                    [href]="reference.url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-primary hover:underline break-words"
+                    >{{ reference.title }}</a
+                  >
+                </li>
+              }
+            </ul>
+          </section>
+        }
+      </article>
+
+      @if (toc().length) {
+        <!-- Above the body on narrow screens, sticky beside it from 900 px (mockup). -->
+        <aside
+          aria-label="Table of contents"
+          class="glass rounded-2xl p-5 order-first min-[900px]:order-none min-[900px]:sticky min-[900px]:top-28"
+        >
+          <p class="text-sm font-semibold mb-2">On this page</p>
+          <nav>
+            @for (entry of toc(); track entry.id) {
+              <!-- Full path: with <base href="/">, a bare #id would point at the home. -->
+              <a
+                href="/blog/{{ item.slug }}#{{ entry.id }}"
+                class="block py-1.5 text-sm leading-snug text-muted-foreground hover:text-foreground transition-colors"
+                [class.pl-4]="entry.level === 3"
+                >{{ entry.text }}</a
+              >
+            }
+          </nav>
+        </aside>
+      }
+    </div>
+  </section>
+}
