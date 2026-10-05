@@ -26,17 +26,17 @@
 
 @layer base {
   html {
-    scroll-behavior: smooth
+    scroll-behavior: smooth;
   }
 
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family: "Inter", sans-serif;
+    font-family: 'Inter', sans-serif;
   }
 
   .font-serif {
-    font-family: "Playfair Display", serif;
+    font-family: 'Playfair Display', serif;
   }
 }
 
@@ -58,7 +58,8 @@
   }
 
   .glow-border {
-    box-shadow: 0 0 20px color-mix(in srgb, var(--color-primary) 20%, transparent),
+    box-shadow:
+      0 0 20px color-mix(in srgb, var(--color-primary) 20%, transparent),
       inset 0 0 20px color-mix(in srgb, var(--color-primary) 5%, transparent);
   }
 }
@@ -79,7 +80,6 @@
   }
 
   @keyframes slow-drift {
-
     0%,
     100% {
       transform: translate(0, 0);
@@ -99,7 +99,6 @@
   }
 
   @keyframes float {
-
     0%,
     100% {
       transform: translateY(0);
