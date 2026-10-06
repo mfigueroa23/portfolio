@@ -1,3 +1,4 @@
+import { PlatformLocation } from '@angular/common';
 import { RESPONSE_INIT, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
@@ -28,7 +29,9 @@ describe('PostPage', () => {
   let seo: { set: ReturnType<typeof vi.fn>; feedLink: ReturnType<typeof vi.fn> };
   let post: ReturnType<typeof vi.fn>;
   let init: ResponseInit;
+  let pathname = '/';
 
+  let routeSlug = 'moving-content';
   const render = async (value: PostDetail | undefined, error: ApiError | null = null) => {
     seo = { set: vi.fn(), feedLink: vi.fn() };
     init = { status: 200 };
@@ -40,9 +43,10 @@ describe('PostPage', () => {
         { provide: SeoService, useValue: seo },
         { provide: MermaidService, useValue: { renderIn: vi.fn() } },
         { provide: RESPONSE_INIT, useValue: init },
+        { provide: PlatformLocation, useValue: { pathname } },
         {
           provide: ActivatedRoute,
-          useValue: { paramMap: of(convertToParamMap({ slug: 'moving-content' })) },
+          useValue: { paramMap: of(convertToParamMap({ slug: routeSlug })) },
         },
       ],
     }).compileComponents();
@@ -111,6 +115,7 @@ describe('PostPage', () => {
       path: '/blog/moving-content',
       image: full.coverUrl,
       type: 'article',
+      alternates: { en: '/blog/moving-content', es: '/es/blog/moving-content' },
     });
     expect(seo.feedLink).toHaveBeenCalled();
   });
@@ -125,5 +130,60 @@ describe('PostPage', () => {
     const element = await render(undefined, 'unavailable');
     expect(init.status).toBe(503);
     expect(element.textContent).toContain('Temporarily unavailable');
+  });
+
+  describe('in Spanish', () => {
+    const spanish: PostDetail = {
+      ...full,
+      slugEs: 'mover-contenido',
+      title: 'Mover el contenido a una API',
+      lang: 'es',
+    };
+    beforeEach(() => (pathname = '/es/blog/mover-contenido'));
+    afterEach(() => {
+      pathname = '/';
+      routeSlug = 'moving-content';
+    });
+
+    it('translates its texts, dates and reading time (RF-131, RF-134, RF-135)', async () => {
+      routeSlug = 'mover-contenido';
+      const element = await render(spanish);
+
+      expect(element.querySelector('a[href="/es/blog"]')?.textContent).toContain(
+        'Todos los artículos',
+      );
+      expect(element.textContent).toContain('7 min de lectura');
+      expect(element.querySelector('time')?.textContent).toMatch(/\d+ oct 2026/);
+      expect(element.textContent).toContain('Referencias');
+      expect(element.textContent).toContain('En esta página');
+      expect(element.querySelector('a[href="/es/blog/tag/next-js"]')).not.toBeNull();
+      expect(element.querySelector('a[href="/es/blog/mover-contenido#before"]')).not.toBeNull();
+    });
+
+    it("declares each language's URL with its own slug (RF-137, RF-138, RF-176)", async () => {
+      routeSlug = 'mover-contenido';
+      await render(spanish);
+      expect(seo.set).toHaveBeenCalledWith(
+        expect.objectContaining({
+          path: '/es/blog/mover-contenido',
+          alternates: { en: '/blog/moving-content', es: '/es/blog/mover-contenido' },
+        }),
+      );
+      expect(init.status).toBe(200);
+    });
+
+    it('redirects permanently from the English slug to the Spanish one (RF-175)', async () => {
+      pathname = '/es/blog/moving-content';
+      await render(spanish);
+      expect(init.status).toBe(301);
+      expect(new Headers(init.headers).get('Location')).toBe('/es/blog/mover-contenido');
+    });
+
+    it('marks a post shown in English (RF-152)', async () => {
+      pathname = '/es/blog/moving-content';
+      const element = await render({ ...full, slugEs: null, lang: 'en' });
+      expect(init.status).toBe(200);
+      expect(element.querySelector('section')?.getAttribute('lang')).toBe('en');
+    });
   });
 });

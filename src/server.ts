@@ -7,6 +7,7 @@ import {
 } from '@angular/ssr/node';
 import { API_URL } from './app/core/config/api';
 import { SITE_URL } from './app/core/config/site';
+import { Lang } from './app/core/i18n/language';
 import { PostSummary } from './app/core/interfaces/content';
 import { buildRssFeed } from './server/rss';
 
@@ -20,14 +21,18 @@ const FEED_TIMEOUT_MS = 5000;
 
 type Next = (error?: unknown) => void;
 
-/** `GET /blog/rss.xml`: the latest published posts as RSS 2.0 (RF-107, RF-108). */
-async function serveFeed(response: ServerResponse): Promise<void> {
+/**
+ * `GET /blog/rss.xml`: the latest published posts as RSS 2.0 (RF-107, RF-108);
+ * `GET /es/blog/rss.xml`: the same posts from the API in Spanish (Spec 004 RF-143, RF-144).
+ */
+async function serveFeed(response: ServerResponse, lang: Lang): Promise<void> {
   try {
-    const api = await fetch(`${API_URL}/content/posts/feed`, {
+    const query = lang === 'es' ? '?lang=es' : '';
+    const api = await fetch(`${API_URL}/content/posts/feed${query}`, {
       signal: AbortSignal.timeout(FEED_TIMEOUT_MS),
     });
     if (!api.ok) throw new Error(`API answered ${api.status}`);
-    const feed = buildRssFeed((await api.json()) as PostSummary[], SITE_URL);
+    const feed = buildRssFeed((await api.json()) as PostSummary[], SITE_URL, lang);
     response.statusCode = 200;
     response.setHeader('Content-Type', 'application/rss+xml; charset=utf-8');
     response.setHeader('Cache-Control', 'no-store');
@@ -41,15 +46,20 @@ async function serveFeed(response: ServerResponse): Promise<void> {
   }
 }
 
-function isFeedRequest(request: IncomingMessage): boolean {
+const FEEDS: Record<string, Lang> = { '/blog/rss.xml': 'en', '/es/blog/rss.xml': 'es' };
+
+/** The language of a feed request, or `null` for any other request. */
+function feedLang(request: IncomingMessage): Lang | null {
+  if (request.method !== 'GET' && request.method !== 'HEAD') return null;
   const path = new URL(request.url ?? '/', 'http://localhost').pathname;
-  return path === '/blog/rss.xml' && (request.method === 'GET' || request.method === 'HEAD');
+  return Object.hasOwn(FEEDS, path) ? FEEDS[path] : null;
 }
 
 async function handle(request: IncomingMessage, response: ServerResponse, next: Next) {
   try {
     // The feed is XML, not an Angular route, so it is answered before the engine (plan D17).
-    if (isFeedRequest(request)) return await serveFeed(response);
+    const lang = feedLang(request);
+    if (lang) return await serveFeed(response, lang);
     const rendered = await engine.handle(request);
     if (!rendered) return next();
     // Server-rendered pages reflect the content of each request (RF-120), so never cache them.

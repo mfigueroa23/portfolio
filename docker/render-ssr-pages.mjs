@@ -17,8 +17,9 @@ if (!server || !outDir) {
 
 const PORT = process.env.CSP_RENDER_PORT ?? '4100';
 const ORIGIN = `http://localhost:${PORT}`;
-// Every kind of server-rendered page: listings, details, the experience page and a 404.
-const ROUTES = {
+// Every kind of server-rendered page: listings, details, the experience page and a 404, in
+// English and under /es (Spec 004 RF-146).
+const ENGLISH_ROUTES = {
   'projects.html': '/projects',
   'project-detail.html': '/projects/csp-probe',
   'experience.html': '/experience',
@@ -26,6 +27,12 @@ const ROUTES = {
   'blog-tag.html': '/blog/tag/csp-probe',
   'post.html': '/blog/csp-probe',
   'not-found.html': '/blog/csp-probe/not-found',
+};
+const ROUTES = {
+  ...ENGLISH_ROUTES,
+  ...Object.fromEntries(
+    Object.entries(ENGLISH_ROUTES).map(([file, route]) => [`es-${file}`, `/es${route}`]),
+  ),
 };
 
 const child = spawn(process.execPath, [server], {

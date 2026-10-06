@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Runs, outside Docker, the same CSP steps as the image build: renders the server-rendered
-# routes with the built server (docker/render-ssr-pages.mjs), computes the hashes of the
+# routes, in English and under /es, with the built server (docker/render-ssr-pages.mjs; the
+# prerendered /es home is part of the browser build), computes the hashes of the
 # prerendered site plus those pages (docker/csp-hashes.pl) and fails when an inline script of
 # an SSR page is missing from the resulting CSP, which nginx would then block.
 #

@@ -10,6 +10,7 @@ import {
 import { HttpClient, HttpErrorResponse, httpResource } from '@angular/common/http';
 import { catchError, of, timeout } from 'rxjs';
 import { API_URL } from '../config/api';
+import { LanguageService } from '../i18n/language.service';
 import {
   Certification,
   ContentCollection,
@@ -39,6 +40,8 @@ export interface ContentResource<T> {
 export class ContentService {
   private readonly http = inject(HttpClient);
   private readonly injector = inject(Injector);
+  // Every request asks for the page language; the API decides per item (RF-150, RF-151).
+  private readonly lang = inject(LanguageService).lang;
 
   /**
    * Returns the items of a content collection as a signal, with optional query parameters
@@ -49,14 +52,12 @@ export class ContentService {
    * browser, a second GET bypasses that cache to pick up content edited after the release.
    */
   public collection<T>(name: ContentCollection, params?: Record<string, number>): Signal<T[]> {
-    const query = new URLSearchParams(
-      Object.entries(params ?? {}).map(([key, value]) => [key, String(value)]),
-    ).toString();
-    const url = `${API_URL}/content/${name}${query ? `?${query}` : ''}`;
+    const url = `${API_URL}/content/${name}`;
+    const query = { ...params, lang: this.lang() };
     const items = signal<T[]>([]);
 
     this.http
-      .get<T[]>(url)
+      .get<T[]>(url, { params: query })
       .pipe(
         timeout(LOAD_TIMEOUT_MS),
         catchError(() => of<T[]>([])),
@@ -66,7 +67,7 @@ export class ContentService {
     // afterNextRender never runs on the server, so the refetch is browser-only.
     afterNextRender(
       () => {
-        this.http.get<T[]>(url, { transferCache: false }).subscribe({
+        this.http.get<T[]>(url, { params: query, transferCache: false }).subscribe({
           next: (fresh) => {
             // Avoid a new emission (and re-render) when the content did not change.
             if (JSON.stringify(fresh) !== JSON.stringify(items())) items.set(fresh);
@@ -133,7 +134,9 @@ export class ContentService {
   private resource<T>(url: () => string | undefined): ContentResource<T> {
     const ref = httpResource<T>(() => {
       const target = url();
-      return target === undefined ? undefined : { url: target, timeout: LOAD_TIMEOUT_MS };
+      return target === undefined
+        ? undefined
+        : { url: target, params: { lang: this.lang() }, timeout: LOAD_TIMEOUT_MS };
     });
     const error = computed<ApiError | null>(() => {
       const failure = ref.error();

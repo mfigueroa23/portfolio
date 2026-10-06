@@ -1,3 +1,4 @@
+import { PlatformLocation } from '@angular/common';
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ContentService } from '../../core/services/content.service';
@@ -15,6 +16,7 @@ describe('Hero', () => {
     { id: 3, position: 2, name: 'Docker' },
   ];
   let collection: ReturnType<typeof vi.fn>;
+  let pathname = '/';
 
   const render = async (
     data: Partial<Record<ContentCollection, unknown[]>>,
@@ -22,7 +24,10 @@ describe('Hero', () => {
     collection = vi.fn((name: ContentCollection) => signal(data[name] ?? []));
     await TestBed.configureTestingModule({
       imports: [Hero],
-      providers: [{ provide: ContentService, useValue: { collection } }],
+      providers: [
+        { provide: ContentService, useValue: { collection } },
+        { provide: PlatformLocation, useValue: { pathname } },
+      ],
     }).compileComponents();
     const fixture = TestBed.createComponent(Hero);
     await fixture.whenStable();
@@ -64,5 +69,22 @@ describe('Hero', () => {
     expect(fixture.componentInstance.techStack()).toEqual([]);
     expect(element.textContent).toContain('Links coming soon');
     expect(element.textContent).toContain('Technologies coming soon');
+  });
+
+  describe('in Spanish', () => {
+    beforeEach(() => (pathname = '/es'));
+    afterEach(() => (pathname = '/'));
+
+    it('translates its texts and links to the Spanish contact form (RF-131)', async () => {
+      const fixture = await render({});
+      const element: HTMLElement = fixture.nativeElement;
+
+      expect(element.textContent).toContain('Disponible para trabajar');
+      expect(element.textContent).toContain('Enlaces próximamente.');
+      expect(element.querySelector('a[href="/es#contact"]')?.textContent).toContain('Contáctame');
+      expect(
+        element.querySelector('img[alt="Marco Figueroa, desarrollador full-stack"]'),
+      ).toBeTruthy();
+    });
   });
 });

@@ -8,13 +8,14 @@
 }
 
 @if (project.value(); as item) {
-  <article class="pt-32 md:pt-40 pb-28">
+  <article class="pt-32 md:pt-40 pb-28" [attr.lang]="language.itemLang(item)">
     <div class="container mx-auto px-6">
       <a
-        href="/projects"
+        [href]="language.href('/projects')"
+        [attr.lang]="language.itemLang(item) && language.lang()"
         class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
       >
-        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All projects
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {{ m().pages.project.all }}
       </a>
 
       <header class="mt-8 mb-10 flex flex-col lg:flex-row lg:items-end justify-between gap-8">
@@ -45,7 +46,7 @@
                 rel="noopener noreferrer"
                 class="inline-flex items-center justify-center gap-2 min-h-11 px-6 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
-                Live site
+                {{ m().pages.project.live }}
                 <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
               </a>
             }
@@ -56,7 +57,8 @@
                 rel="noopener noreferrer"
                 class="inline-flex items-center justify-center gap-2 min-h-11 px-6 rounded-full border border-border text-foreground text-sm font-medium hover:border-primary hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
-                <i class="fa-brands fa-github" aria-hidden="true"></i> Source code
+                <i class="fa-brands fa-github" aria-hidden="true"></i>
+                {{ m().pages.project.source }}
               </a>
             }
           </div>
@@ -78,14 +80,17 @@
 
     <footer
       class="max-w-3xl mx-auto px-6 mt-16 pt-8 border-t border-border flex flex-wrap items-center justify-between gap-4"
+      [attr.lang]="language.itemLang(item) && language.lang()"
     >
       <a
-        href="/projects"
+        [href]="language.href('/projects')"
         class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
       >
-        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All projects
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {{ m().pages.project.all }}
       </a>
-      <app-button size="sm" href="/#contact">Contact Me</app-button>
+      <app-button size="sm" [href]="language.href('/#contact')">{{
+        m().pages.project.contactMe
+      }}</app-button>
     </footer>
   </article>
 }

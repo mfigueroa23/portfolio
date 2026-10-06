@@ -10,17 +10,18 @@
     <article class="text-center max-w-3xl mx-auto mb-16">
       <span
         class="text-secondary-foreground text-sm font-medium tracking-wider uppercase animate-fade-in"
-        >Get In Touch</span
+        >{{ m().contact.eyebrow }}</span
       >
       <h2
         class="text-4xl md:text-5xl font-bold mt-4 mb-6 animate-fade-in animation-delay-100 text-secondary-foreground"
       >
-        Let's build
-        <span class="font-serif italic font-normal text-white">something great.</span>
+        {{ m().contact.heading.lead }}
+        <span class="font-serif italic font-normal text-white">{{
+          m().contact.heading.accent
+        }}</span>
       </h2>
       <p class="text-muted-foreground animate-fade-in animation-delay-200">
-        Have a project or an opportunity in mind? Send me a message and let's discuss how we can
-        work together.
+        {{ m().contact.intro }}
       </p>
     </article>
 
@@ -31,19 +32,21 @@
       >
         <form class="space-y-6" (submit)="onSubmit($event)">
           <div>
-            <label for="name" class="block text-sm font-medium mb-2">Name</label>
+            <label for="name" class="block text-sm font-medium mb-2">{{ m().contact.name }}</label>
             <input
               id="name"
               type="text"
               required
-              placeholder="Your name..."
+              [placeholder]="m().contact.namePlaceholder"
               [value]="name()"
               (input)="name.set($any($event.target).value)"
               class="w-full px-4 py-3 bg-surface rounded-xl border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
             />
           </div>
           <div>
-            <label for="email" class="block text-sm font-medium mb-2">Email</label>
+            <label for="email" class="block text-sm font-medium mb-2">{{
+              m().contact.email
+            }}</label>
             <input
               id="email"
               type="email"
@@ -55,12 +58,14 @@
             />
           </div>
           <div>
-            <label for="message" class="block text-sm font-medium mb-2">Message</label>
+            <label for="message" class="block text-sm font-medium mb-2">{{
+              m().contact.message
+            }}</label>
             <textarea
               id="message"
               rows="5"
               required
-              placeholder="Your message..."
+              [placeholder]="m().contact.messagePlaceholder"
               [value]="message()"
               (input)="message.set($any($event.target).value)"
               class="w-full px-4 py-3 bg-surface rounded-xl border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all resize-none"
@@ -84,9 +89,9 @@
 
           <app-button size="lg" extraClass="w-full" class="block" [disabled]="isLoading()">
             @if (isLoading()) {
-              Sending... <i class="fa-solid fa-spinner fa-spin"></i>
+              {{ m().contact.sending }} <i class="fa-solid fa-spinner fa-spin"></i>
             } @else {
-              Send Message <i class="fa-solid fa-paper-plane"></i>
+              {{ m().contact.send }} <i class="fa-solid fa-paper-plane"></i>
             }
           </app-button>
 
@@ -112,12 +117,13 @@
       <!-- Contact Info -->
       <section class="space-y-6 animate-fade-in animation-delay-400">
         <article class="glass rounded-3xl p-8">
-          <h3 class="text-xl font-semibold mb-6">Contact Information</h3>
+          <h3 class="text-xl font-semibold mb-6">{{ m().contact.info }}</h3>
           <div class="space-y-4">
             @for (item of contactInfo(); track $index) {
               <a
                 href="{{ item.href }}"
                 class="flex items-center gap-4 p-4 rounded-xl hover:bg-surface transition-colors group"
+                [attr.lang]="language.itemLang(item)"
               >
                 <div
                   class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors"
@@ -130,7 +136,7 @@
                 </div>
               </a>
             } @empty {
-              <p class="text-sm text-muted-foreground">Contact details coming soon.</p>
+              <p class="text-sm text-muted-foreground">{{ m().contact.infoSoon }}</p>
             }
           </div>
         </article>
@@ -139,12 +145,9 @@
         <article class="glass rounded-3xl p-8 border border-primary/30">
           <div class="flex items-center gap-3 mb-4">
             <span class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
-            <span class="font-medium">Currently Available</span>
+            <span class="font-medium">{{ m().contact.available }}</span>
           </div>
-          <p class="text-muted-foreground text-sm">
-            I'm open to new opportunities in software development, system administration and DevOps.
-            Let's talk!
-          </p>
+          <p class="text-muted-foreground text-sm">{{ m().contact.availableText }}</p>
         </article>
       </section>
     </article>

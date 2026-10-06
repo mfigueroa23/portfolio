@@ -1,14 +1,16 @@
 import { RenderMode, ServerRoute } from '@angular/ssr';
 
-// The home is prerendered at build time; the content pages are rendered on each request so
-// they reflect the panel's changes immediately (RF-116, RF-120).
+// Content pages rendered on each request so they reflect the panel's changes immediately
+// (RF-116, RF-120).
+const contentPaths = ['projects', 'projects/:slug', 'experience', 'blog', 'blog/**'];
+
+// The home is prerendered at build time; the Spanish pages under `/es` mirror the render mode
+// of their English equivalents (Spec 004 RF-146).
 export const serverRoutes: ServerRoute[] = [
   { path: '', renderMode: RenderMode.Prerender },
-  { path: 'projects', renderMode: RenderMode.Server },
-  { path: 'projects/:slug', renderMode: RenderMode.Server },
-  { path: 'experience', renderMode: RenderMode.Server },
-  { path: 'blog', renderMode: RenderMode.Server },
-  { path: 'blog/**', renderMode: RenderMode.Server },
+  { path: 'es', renderMode: RenderMode.Prerender },
+  ...contentPaths.map((path) => ({ path, renderMode: RenderMode.Server as const })),
+  ...contentPaths.map((path) => ({ path: `es/${path}`, renderMode: RenderMode.Server as const })),
   // Unknown paths render the not-found page with a 404 status.
   { path: '**', renderMode: RenderMode.Server },
 ];

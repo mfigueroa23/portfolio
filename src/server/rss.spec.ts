@@ -59,4 +59,39 @@ describe('buildRssFeed', () => {
     expect(doc.querySelector('channel')).not.toBeNull();
     expect(doc.querySelectorAll('item').length).toBe(0);
   });
+
+  describe('Spanish feed (RF-143, RF-144)', () => {
+    const translated: PostSummary = { ...post, slugEs: 'mover-contenido', lang: 'es' };
+
+    it('has a Spanish channel at /es/blog', () => {
+      const doc = parse(buildRssFeed([post], site, 'es'));
+      expect(doc.querySelector('parsererror')).toBeNull();
+      expect(doc.querySelector('channel > title')?.textContent).toBe(
+        'Marco Figueroa — Blog en español',
+      );
+      expect(doc.querySelector('channel > description')?.textContent).toBe(
+        'Artículos sobre cómo construir, desplegar y operar software.',
+      );
+      expect(doc.querySelector('channel > language')?.textContent).toBe('es');
+      expect(doc.querySelector('channel > link')?.textContent).toBe(`${site}/es/blog`);
+      expect(doc.documentElement.innerHTML).toContain(`${site}/es/blog/rss.xml`);
+    });
+
+    it('links each post to its Spanish URL, with the English slug as fallback', () => {
+      const links = Array.from(
+        parse(
+          buildRssFeed([translated, { ...post, id: 2, slug: 'second' }], site, 'es'),
+        ).querySelectorAll('item > link'),
+        (link) => link.textContent,
+      );
+      expect(links).toEqual([`${site}/es/blog/mover-contenido`, `${site}/es/blog/second`]);
+    });
+
+    it('keeps the English feed unchanged (RF-145)', () => {
+      expect(buildRssFeed([translated], site)).toBe(buildRssFeed([translated], site, 'en'));
+      const doc = parse(buildRssFeed([translated], site));
+      expect(doc.querySelector('channel > language')?.textContent).toBe('en');
+      expect(doc.querySelector('item > link')?.textContent).toBe(`${site}/blog/moving-content`);
+    });
+  });
 });

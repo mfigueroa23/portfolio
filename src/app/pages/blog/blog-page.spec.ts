@@ -1,3 +1,4 @@
+import { PlatformLocation } from '@angular/common';
 import { RESPONSE_INIT, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, Params } from '@angular/router';
@@ -30,6 +31,7 @@ describe('BlogPage', () => {
   let seo: { set: ReturnType<typeof vi.fn>; feedLink: ReturnType<typeof vi.fn> };
   let postPage: ReturnType<typeof vi.fn>;
   let init: ResponseInit;
+  let pathname = '/';
 
   const render = async (
     params: Params,
@@ -49,6 +51,7 @@ describe('BlogPage', () => {
         { provide: ContentService, useValue: { postPage } },
         { provide: SeoService, useValue: seo },
         { provide: RESPONSE_INIT, useValue: init },
+        { provide: PlatformLocation, useValue: { pathname } },
         { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap(params)) } },
       ],
     }).compileComponents();
@@ -192,6 +195,53 @@ describe('BlogPage', () => {
       const element = await render({ tag: 'unknown' }, undefined, 'notFound');
       expect(init.status).toBe(404);
       expect(element.textContent).toContain('Page not found');
+    });
+  });
+
+  describe('in Spanish', () => {
+    beforeEach(() => (pathname = '/es/blog'));
+    afterEach(() => (pathname = '/'));
+
+    it('translates its texts and keeps its links in Spanish (RF-131, RF-135)', async () => {
+      const element = await render(
+        {},
+        pageOf({
+          items: [post(1, { slugEs: 'articulo-1', lang: 'es' }), post(2, { lang: 'en' })],
+          totalPages: 2,
+          total: 12,
+        }),
+      );
+
+      expect(element.querySelector('h1')?.textContent).toContain('Notas desde');
+      expect(element.textContent).toContain('7 min de lectura');
+      expect(element.querySelector('a[href="/es/blog/articulo-1"]')).not.toBeNull();
+      expect(element.querySelector('a[href="/es/blog/post-2"]')).not.toBeNull();
+      expect(element.querySelector('a[href="/es/blog/tag/next-js"]')).not.toBeNull();
+      expect(element.querySelector('a[href="/es/blog/rss.xml"]')).not.toBeNull();
+      expect(element.querySelector('a[href="/es/blog/page/2"]')?.textContent).toContain(
+        'Anteriores',
+      );
+      expect(element.textContent).toContain('Página 1 de 2');
+      expect(element.querySelector('time')?.textContent).toMatch(/\d+ oct 2026/);
+    });
+
+    it('marks posts shown in English (RF-152)', async () => {
+      const element = await render({}, pageOf({ items: [post(1, { lang: 'en' })] }));
+      expect(element.querySelector('article')?.getAttribute('lang')).toBe('en');
+    });
+
+    it('lists a tag with the same key as in English (RF-165)', async () => {
+      await render(
+        { tag: 'next-js', page: '2' },
+        pageOf({ tag: 'Next JS', page: 2, totalPages: 2 }),
+      );
+      expect(requested()).toEqual({ page: 2, tag: 'next-js' });
+      expect(seo.set).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Artículos con la etiqueta Next JS — Página 2',
+          path: '/es/blog/tag/next-js/page/2',
+        }),
+      );
     });
   });
 });

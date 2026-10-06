@@ -3,18 +3,21 @@
     <article class="flex flex-col md:flex-row items-center justify-between gap-8">
       <!-- Logo & Copyright -->
       <section class="text-center md:text-left">
-        <a href="/#" class="text-xl font-bold tracking-tight hover:text-primary">
+        <a [href]="language.href('/#')" class="text-xl font-bold tracking-tight hover:text-primary">
           MF<span class="text-primary">.</span>
         </a>
         <p class="text-sm text-muted-foreground mt-2">
-          © {{ currentYear }} Marco Figueroa. All rights reserved.
+          © {{ currentYear }} {{ language.m().footer.rights }}
         </p>
       </section>
 
       <!-- Links -->
       <nav class="flex flex-wrap justify-center gap-6">
         @for (link of footerLinks; track $index) {
-          <a href="{{ link.href }}" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <a
+            href="{{ link.href }}"
+            class="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
             {{ link.label }}
           </a>
         }
@@ -23,7 +26,12 @@
       <!-- Social Links -->
       <section class="flex items-center gap-4">
         @for (link of socialLinks; track $index) {
-          <a href="{{ link.href }}" target="_blank" [attr.aria-label]="link.label" class="p-2 rounded-full glass hover:bg-primary/10 hover:text-primary transition-all">
+          <a
+            href="{{ link.href }}"
+            target="_blank"
+            [attr.aria-label]="link.label"
+            class="p-2 rounded-full glass hover:bg-primary/10 hover:text-primary transition-all"
+          >
             <i class="{{ link.icon }}"></i>
           </a>
         }

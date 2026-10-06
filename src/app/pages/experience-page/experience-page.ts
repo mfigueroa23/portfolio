@@ -1,6 +1,7 @@
 import { afterNextRender, Component, computed, inject, signal } from '@angular/core';
 import { MarkdownBody } from '../../components/markdown-body/markdown-body';
 import { Certification } from '../../core/interfaces/content';
+import { LanguageService } from '../../core/i18n/language.service';
 import { ContentService } from '../../core/services/content.service';
 import { SeoService } from '../../core/services/seo.service';
 import { formatCalendarDate, isExpired } from '../../core/utils/dates';
@@ -20,6 +21,8 @@ interface CertificationCard extends Certification {
 })
 export class ExperiencePage {
   private readonly content = inject(ContentService);
+  protected readonly language = inject(LanguageService);
+  protected readonly m = this.language.m;
   protected readonly experiences = this.content.experiences();
   private readonly certifications = this.content.certifications();
 
@@ -33,23 +36,22 @@ export class ExperiencePage {
   protected readonly certificationCards = computed<CertificationCard[]>(() => {
     const now = new Date();
     const timeZone = this.timeZone();
+    const lang = this.language.lang();
     return [...(this.certifications.value() ?? [])]
       .sort((a, b) => a.position - b.position)
       .map((certification) => ({
         ...certification,
-        issued: formatCalendarDate(certification.issueDate),
-        expires: certification.expiryDate ? formatCalendarDate(certification.expiryDate) : null,
+        issued: formatCalendarDate(certification.issueDate, lang),
+        expires: certification.expiryDate
+          ? formatCalendarDate(certification.expiryDate, lang)
+          : null,
         expired: isExpired(certification.expiryDate, now, timeZone),
       }));
   });
 
   constructor() {
     afterNextRender(() => this.timeZone.set(undefined));
-    inject(SeoService).set({
-      title: 'Experience',
-      description:
-        'The full career of Marco Figueroa: every role with its stack and results, plus certifications.',
-      path: '/experience',
-    });
+    const { seoTitle, seoDescription } = this.m().pages.experience;
+    inject(SeoService).set({ title: seoTitle, description: seoDescription, path: '/experience' });
   }
 }

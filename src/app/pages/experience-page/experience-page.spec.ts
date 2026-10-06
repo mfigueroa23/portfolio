@@ -1,3 +1,4 @@
+import { PlatformLocation } from '@angular/common';
 import { RESPONSE_INIT, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ApiError, ContentService } from '../../core/services/content.service';
@@ -47,6 +48,7 @@ describe('ExperiencePage', () => {
   });
   let seo: { set: ReturnType<typeof vi.fn> };
   let init: ResponseInit;
+  let pathname = '/';
 
   const resource = <T>(value: T | undefined, error: ApiError | null = null) => ({
     value: signal(value),
@@ -74,6 +76,7 @@ describe('ExperiencePage', () => {
         { provide: SeoService, useValue: seo },
         { provide: MermaidService, useValue: { renderIn: vi.fn() } },
         { provide: RESPONSE_INIT, useValue: init },
+        { provide: PlatformLocation, useValue: { pathname } },
       ],
     }).compileComponents();
     const fixture = TestBed.createComponent(ExperiencePage);
@@ -205,6 +208,42 @@ describe('ExperiencePage', () => {
       expect(old.textContent).toContain('Expired');
       expect(forever.textContent).not.toContain('Expired');
       expect(forever.textContent).toContain('No expiry');
+    });
+  });
+
+  describe('in Spanish', () => {
+    beforeEach(() => (pathname = '/es/experience'));
+    afterEach(() => (pathname = '/'));
+
+    it('translates its texts and formats dates in Spanish (RF-131, RF-134)', async () => {
+      const { element } = await render(
+        [{ ...entries[0], lang: 'es' }],
+        [certification({ issueDate: '2026-10-05', lang: 'es' })],
+      );
+
+      expect(element.querySelector('h1')?.textContent).toContain('La historia');
+      expect(element.querySelector('summary')?.textContent).toContain('Actual');
+      expect(element.textContent).toContain('Certificaciones');
+      expect(element.textContent).toContain('Emitida');
+      expect(element.textContent).toContain('5 oct 2026');
+      expect(element.textContent).toContain('Sin vencimiento');
+      expect(element.querySelector('a[href="/es"]')?.textContent).toContain('Volver al inicio');
+    });
+
+    it('marks entries and certifications shown in English (RF-152)', async () => {
+      const { element } = await render(
+        [{ ...entries[0], lang: 'en' }],
+        [certification({ lang: 'en' })],
+      );
+      expect(element.querySelector('details')?.getAttribute('lang')).toBe('en');
+      expect(element.querySelector('h3')?.closest('article')?.getAttribute('lang')).toBe('en');
+    });
+
+    it('sets the Spanish title', async () => {
+      await render(entries);
+      expect(seo.set).toHaveBeenCalledWith(
+        expect.objectContaining({ title: 'Experiencia', path: '/experience' }),
+      );
     });
   });
 });

@@ -49,3 +49,18 @@ describe('formatInstant', () => {
     expect(formatInstant(iso, 'Asia/Tokyo')).toBe('Oct 4, 2026');
   });
 });
+
+describe('dates in Spanish (RF-134)', () => {
+  it('formats a calendar date as "5 oct 2026"', () => {
+    expect(formatCalendarDate('2026-10-05', 'es')).toBe('5 oct 2026');
+  });
+
+  it('formats an instant as "5 oct 2026"', () => {
+    expect(formatInstant('2026-10-05T12:00:00Z', 'UTC', 'es')).toBe('5 oct 2026');
+  });
+
+  it('keeps the English formats by default (RF-133)', () => {
+    expect(formatCalendarDate('2026-10-05')).toBe('Oct 5, 2026');
+    expect(formatInstant('2026-10-05T12:00:00Z', 'UTC', 'en')).toBe('Oct 5, 2026');
+  });
+});

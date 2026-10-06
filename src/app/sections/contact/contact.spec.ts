@@ -1,3 +1,4 @@
+import { PlatformLocation } from '@angular/common';
 import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ContactInfo } from '../../core/interfaces/content';
@@ -151,5 +152,40 @@ describe('Contact', () => {
       expect(element.textContent).toContain('Contact details coming soon');
       expect(element.querySelector('a[href^="mailto:"]')).toBeNull();
     });
+  });
+});
+
+describe('Contact in Spanish', () => {
+  it('translates its texts and marks contact items shown in English (RF-131, RF-152)', async () => {
+    const send = vi.fn().mockRejectedValue(new Error(''));
+    const info: ContactInfo = {
+      id: 1,
+      position: 0,
+      icon: 'fa-solid fa-location-dot',
+      label: 'Location',
+      value: 'Santiago',
+      href: '/#contact',
+      lang: 'en',
+    };
+    await TestBed.configureTestingModule({
+      imports: [Contact],
+      providers: [
+        { provide: ContactService, useValue: { send } },
+        { provide: ContentService, useValue: { collection: () => signal([info]) } },
+        { provide: PlatformLocation, useValue: { pathname: '/es' } },
+      ],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(Contact);
+    await fixture.whenStable();
+    const element: HTMLElement = fixture.nativeElement;
+
+    expect(element.querySelector('label[for="message"]')?.textContent).toContain('Mensaje');
+    expect(element.textContent).toContain('Enviar mensaje');
+    expect(element.textContent).toContain('Información de contacto');
+    expect(element.querySelector('a[href="/#contact"]')?.getAttribute('lang')).toBe('en');
+
+    element.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true }));
+    await fixture.whenStable();
+    expect(element.textContent).toContain('No se pudo enviar el mensaje. Inténtalo más tarde.');
   });
 });

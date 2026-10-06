@@ -1,3 +1,4 @@
+import { PlatformLocation } from '@angular/common';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { RESPONSE_INIT } from '@angular/core';
@@ -26,7 +27,9 @@ describe('ProjectDetail', () => {
   let seo: { set: ReturnType<typeof vi.fn> };
   let project: ReturnType<typeof vi.fn>;
   let init: ResponseInit;
+  let pathname = '/';
 
+  let routeSlug = 'portfolio';
   const render = async (value: Detail | undefined, error: ApiError | null = null) => {
     seo = { set: vi.fn() };
     init = { status: 200 };
@@ -42,9 +45,10 @@ describe('ProjectDetail', () => {
         { provide: SeoService, useValue: seo },
         { provide: MermaidService, useValue: { renderIn: vi.fn() } },
         { provide: RESPONSE_INIT, useValue: init },
+        { provide: PlatformLocation, useValue: { pathname } },
         {
           provide: ActivatedRoute,
-          useValue: { paramMap: of(convertToParamMap({ slug: 'portfolio' })) },
+          useValue: { paramMap: of(convertToParamMap({ slug: routeSlug })) },
         },
       ],
     }).compileComponents();
@@ -89,6 +93,7 @@ describe('ProjectDetail', () => {
       description: 'Public site, panel and API.',
       path: '/projects/portfolio',
       image: full.image,
+      alternates: { en: '/projects/portfolio', es: '/es/projects/portfolio' },
     });
   });
 
@@ -102,5 +107,61 @@ describe('ProjectDetail', () => {
     const element = await render(undefined, 'unavailable');
     expect(init.status).toBe(503);
     expect(element.textContent).toContain('Temporarily unavailable');
+  });
+
+  describe('in Spanish', () => {
+    const spanish: Detail = { ...full, slugEs: 'plataforma', title: 'Plataforma', lang: 'es' };
+    beforeEach(() => (pathname = '/es/projects/plataforma'));
+    afterEach(() => {
+      pathname = '/';
+      routeSlug = 'portfolio';
+    });
+
+    it('translates its texts and links to the Spanish pages (RF-131)', async () => {
+      routeSlug = 'plataforma';
+      const element = await render(spanish);
+
+      expect(element.querySelector('a[href="/es/projects"]')?.textContent).toContain(
+        'Todos los proyectos',
+      );
+      expect(element.textContent).toContain('Sitio en vivo');
+      expect(element.querySelector('a[href="/es#contact"]')?.textContent).toContain('Contáctame');
+      expect(init.status).toBe(200);
+    });
+
+    it("declares each language's URL with its own slug (RF-137, RF-138, RF-176)", async () => {
+      routeSlug = 'plataforma';
+      await render(spanish);
+      expect(seo.set).toHaveBeenCalledWith(
+        expect.objectContaining({
+          path: '/es/projects/plataforma',
+          alternates: { en: '/projects/portfolio', es: '/es/projects/plataforma' },
+        }),
+      );
+    });
+
+    it('redirects permanently from the English slug to the Spanish one (RF-175)', async () => {
+      pathname = '/es/projects/portfolio';
+      await render(spanish);
+      expect(init.status).toBe(301);
+      expect(new Headers(init.headers).get('Location')).toBe('/es/projects/plataforma');
+    });
+
+    it('does not redirect when the project has no Spanish slug (RF-169)', async () => {
+      pathname = '/es/projects/portfolio';
+      await render({ ...full, slugEs: null, lang: 'en' });
+      expect(init.status).toBe(200);
+    });
+
+    it('marks a project shown in English (RF-152)', async () => {
+      pathname = '/es/projects/portfolio';
+      const element = await render({ ...full, lang: 'en' });
+      expect(element.querySelector('article')?.getAttribute('lang')).toBe('en');
+    });
+
+    it('shows the Spanish 404 page', async () => {
+      const element = await render(undefined, 'notFound');
+      expect(element.textContent).toContain('Página no encontrada');
+    });
   });
 });

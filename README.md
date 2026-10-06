@@ -26,6 +26,15 @@ I enjoy understanding the whole picture: how the code is written, how it's deplo
 - **LinkedIn:** [mfigueroa23](https://www.linkedin.com/in/mfigueroa23)
 - **Location:** Santiago, Chile
 
+## Forms
+
+- **Contact:** the contact section sends messages to the API (`POST /contact`).
+- **Testimonials:** once the home page is interactive, the testimonials section shows a "Leave a testimonial" button that opens a dialog with the testimonial form (name, role, email and testimonial). It posts to the API (`POST /testimonials`); a submitted testimonial stays hidden until the owner approves it in the panel. Testimonials without a photo show the author's initials.
+
+## Languages
+
+The site is in English at its usual URLs and in Spanish under `/es` (for example `/es`, `/es/blog`, `/es/blog/rss.xml`). The interface texts live in typed dictionaries (`src/app/core/i18n/`), and the content comes from the API in the page's language; an item without a Spanish version is shown in English. The EN/ES switch in the navigation opens the same page in the other language and remembers the choice in a `lang` cookie for 365 days. On a first visit (no `lang` cookie) from a browser whose first language is Spanish, nginx redirects the English pages to their `/es` equivalent with a temporary `302`; those responses are marked `private` and `Vary: Accept-Language, Cookie` so shared caches don't reuse them. Feeds, files and assets are never redirected.
+
 ## Deployment
 
 The site runs as one Kubernetes pod (`deployment/portfolio`, namespace `portfolio`) with two containers:

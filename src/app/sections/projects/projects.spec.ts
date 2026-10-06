@@ -1,3 +1,4 @@
+import { PlatformLocation } from '@angular/common';
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ContentService } from '../../core/services/content.service';
@@ -17,12 +18,16 @@ describe('Projects', () => {
     publishedAt: '2026-10-01T12:00:00.000Z',
   });
   let collection: ReturnType<typeof vi.fn>;
+  let pathname = '/';
 
   const render = async (data: Project[]): Promise<ComponentFixture<Projects>> => {
     collection = vi.fn(() => signal(data));
     await TestBed.configureTestingModule({
       imports: [Projects],
-      providers: [{ provide: ContentService, useValue: { collection } }],
+      providers: [
+        { provide: ContentService, useValue: { collection } },
+        { provide: PlatformLocation, useValue: { pathname } },
+      ],
     }).compileComponents();
     const fixture = TestBed.createComponent(Projects);
     await fixture.whenStable();
@@ -76,5 +81,28 @@ describe('Projects', () => {
     expect(element.textContent).toContain('Projects coming soon');
     expect(element.querySelector('img')).toBeNull();
     expect(element.querySelector('a[href="/projects"]')).toBeNull();
+  });
+
+  describe('in Spanish', () => {
+    beforeEach(() => (pathname = '/es'));
+    afterEach(() => (pathname = '/'));
+
+    it('translates its texts and links to the Spanish pages (RF-131)', async () => {
+      const fixture = await render([{ ...project(1), slugEs: 'proyecto-1', lang: 'es' }]);
+      const element: HTMLElement = fixture.nativeElement;
+
+      expect(element.textContent).toContain('generan impacto.');
+      expect(element.querySelector('a[href="/es/projects"]')?.textContent).toContain(
+        'Ver más proyectos',
+      );
+      expect(element.querySelector('a[href="/es/projects/proyecto-1"]')).not.toBeNull();
+    });
+
+    it('shows the Spanish empty state', async () => {
+      const fixture = await render([]);
+      expect((fixture.nativeElement as HTMLElement).textContent).toContain(
+        'Proyectos próximamente',
+      );
+    });
   });
 });

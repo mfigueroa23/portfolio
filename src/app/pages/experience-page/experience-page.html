@@ -3,32 +3,33 @@
 } @else {
   <section class="container mx-auto px-6 pt-32 md:pt-40 pb-28">
     <a
-      href="/"
+      [href]="language.href('/')"
       class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
     >
-      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to home
+      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {{ m().pages.backHome }}
     </a>
 
     <header class="max-w-3xl mt-8 mb-12">
       <p class="text-secondary-foreground text-sm font-medium tracking-wider uppercase">
-        Career Journey
+        {{ m().pages.experience.eyebrow }}
       </p>
       <h1 class="text-4xl md:text-5xl font-bold mt-4 mb-6 text-secondary-foreground">
-        The full
-        <span class="font-serif italic font-normal text-white">story.</span>
+        {{ m().pages.experience.heading.lead }}
+        <span class="font-serif italic font-normal text-white">{{
+          m().pages.experience.heading.accent
+        }}</span>
       </h1>
-      <p class="text-muted-foreground">
-        Open any role to read what I did there, the stack and the results.
-      </p>
+      <p class="text-muted-foreground">{{ m().pages.experience.intro }}</p>
     </header>
 
     @if (experiences.value(); as entries) {
       @if (entries.length) {
         <!-- Native details/summary: keyboard support, expanded state and no-JS content (D15). -->
-        <section aria-label="Experience" class="space-y-4">
+        <section [attr.aria-label]="m().pages.experience.listLabel" class="space-y-4">
           @for (entry of entries; track entry.id) {
             <details
               class="group glass rounded-2xl border border-border open:border-primary/45 transition-colors"
+              [attr.lang]="language.itemLang(entry)"
             >
               <summary
                 class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 px-6 py-5 cursor-pointer list-none [&::-webkit-details-marker]:hidden rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
@@ -42,7 +43,8 @@
                   @if (entry.current) {
                     <span
                       class="px-2.5 py-0.5 rounded-full bg-primary/15 text-primary text-xs font-semibold"
-                      >Current</span
+                      [attr.lang]="language.itemLang(entry) && language.lang()"
+                      >{{ m().pages.experience.current }}</span
                     >
                   }
                 </span>
@@ -75,23 +77,26 @@
           >
             <i class="fa-solid fa-briefcase text-2xl text-primary" aria-hidden="true"></i>
           </div>
-          <h2 class="text-xl font-semibold mb-2">Experience coming soon</h2>
-          <p class="text-sm text-muted-foreground">
-            I'm updating this section. Please check back soon.
-          </p>
+          <h2 class="text-xl font-semibold mb-2">{{ m().pages.experience.soon }}</h2>
+          <p class="text-sm text-muted-foreground">{{ m().pages.experience.updating }}</p>
         </article>
       }
     }
 
     @if (certificationCards().length) {
       <section aria-labelledby="certifications" class="mt-24">
-        <p class="text-secondary-foreground text-sm font-medium tracking-wider uppercase">Proof</p>
+        <p class="text-secondary-foreground text-sm font-medium tracking-wider uppercase">
+          {{ m().pages.experience.proof }}
+        </p>
         <h2 id="certifications" class="text-3xl md:text-4xl font-bold mt-3 mb-10">
-          Certifications
+          {{ m().pages.experience.certifications }}
         </h2>
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           @for (cert of certificationCards(); track cert.id) {
-            <article class="glass rounded-2xl p-6 flex flex-col gap-5">
+            <article
+              class="glass rounded-2xl p-6 flex flex-col gap-5"
+              [attr.lang]="language.itemLang(cert)"
+            >
               <div class="flex items-start justify-between">
                 <span
                   class="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center"
@@ -102,7 +107,7 @@
                 @if (cert.expired) {
                   <span
                     class="px-2.5 py-0.5 rounded-full bg-highlight/15 text-highlight text-xs font-semibold"
-                    >Expired</span
+                    >{{ m().pages.experience.expired }}</span
                   >
                 }
               </div>
@@ -111,12 +116,14 @@
                 <p class="text-muted-foreground">{{ cert.issuer }}</p>
               </div>
               <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
-                <dt class="text-muted-foreground">Issued</dt>
+                <dt class="text-muted-foreground">{{ m().pages.experience.issued }}</dt>
                 <dd>{{ cert.issued }}</dd>
-                <dt class="text-muted-foreground">{{ cert.expired ? 'Expired' : 'Expires' }}</dt>
-                <dd>{{ cert.expires ?? 'No expiry' }}</dd>
+                <dt class="text-muted-foreground">
+                  {{ cert.expired ? m().pages.experience.expired : m().pages.experience.expires }}
+                </dt>
+                <dd>{{ cert.expires ?? m().pages.experience.noExpiry }}</dd>
                 @if (cert.credentialId) {
-                  <dt class="text-muted-foreground">Credential</dt>
+                  <dt class="text-muted-foreground">{{ m().pages.experience.credential }}</dt>
                   <dd class="break-all">{{ cert.credentialId }}</dd>
                 }
               </dl>
@@ -129,7 +136,7 @@
                       rel="noopener noreferrer"
                       class="inline-flex items-center gap-2 min-h-11 text-primary hover:underline"
                     >
-                      View certificate
+                      {{ m().pages.experience.viewCertificate }}
                       <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
                     </a>
                   }
@@ -140,7 +147,7 @@
                       rel="noopener noreferrer"
                       class="inline-flex items-center gap-2 min-h-11 text-primary hover:underline"
                     >
-                      Verify
+                      {{ m().pages.experience.verify }}
                       <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
                     </a>
                   }
