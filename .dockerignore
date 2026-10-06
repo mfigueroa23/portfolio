@@ -1,4 +1,4 @@
-# Only dist/, nginx.conf and docker/ are needed in the build context
+# The image builds the app itself (Dockerfile stage `build`), so local builds stay out
 .git
 .github
 .angular
@@ -6,6 +6,7 @@
 .vercel
 .env*
 node_modules
+dist
 coverage
 out-tsc
 *.log

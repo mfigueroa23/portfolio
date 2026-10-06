@@ -1,18 +1,32 @@
-# Stage 0: render the server-rendered routes once with the built SSR server, so their inline
+# Stage 0: build the app. It runs on the build platform (--platform=$BUILDPLATFORM): the output
+# is JavaScript and HTML, the same for every target platform, so it is built once and natively.
+# An empty API_URL (unset CI secret) falls back to production (scripts/ng.mjs).
+FROM --platform=$BUILDPLATFORM node:26-alpine AS build
+RUN npm install -g pnpm@12.6.0
+WORKDIR /app
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN pnpm install --frozen-lockfile
+COPY . .
+ARG API_URL=
+RUN pnpm build
+
+# Stage 1: render the server-rendered routes once with the built SSR server, so their inline
 # scripts (Angular's event-replay bootstrap, whose event list differs from the home's) get
-# their own CSP hashes. The scripts depend on the page components, not on the content.
-FROM node:26-alpine AS ssr-pages
-COPY dist/devsonic.cl/server /app/server
-COPY dist/devsonic.cl/browser /app/browser
+# their own CSP hashes. The scripts depend on the page components, not on the content. It
+# runs once, on the build platform: run per target platform in parallel, the renders shared
+# the builder's network (release 4.0.0 failed on a port collision).
+FROM --platform=$BUILDPLATFORM node:26-alpine AS ssr-pages
+COPY --from=build /app/dist/devsonic.cl/server /app/server
+COPY --from=build /app/dist/devsonic.cl/browser /app/browser
 COPY docker/render-ssr-pages.mjs /app/
 RUN node /app/render-ssr-pages.mjs /app/server/server.mjs /pages
 
-# Stage 1: set the API origin in the CSP, compute hashes for inline scripts and lock down
-# file permissions. API_URL must match the one used by `pnpm build`; an empty value (unset CI
-# secret) falls back to production.
-FROM perl:5-slim AS csp
+# Stage 2: set the API origin in the CSP, compute hashes for inline scripts and lock down
+# file permissions (platform-independent files, so also on the build platform). API_URL is the
+# one the build stage used; an empty value (unset CI secret) falls back to production.
+FROM --platform=$BUILDPLATFORM perl:5-slim AS csp
 ARG API_URL=https://api.figueroa-sanchez.com
-COPY dist/devsonic.cl/browser /site
+COPY --from=build /app/dist/devsonic.cl/browser /site
 COPY nginx.conf docker/csp-hashes.pl /work/
 COPY --from=ssr-pages /pages /ssr-pages
 # Only scheme://host[:port] reaches nginx.conf, so the value can't inject CSP directives.
@@ -27,8 +41,8 @@ RUN API_ORIGIN=$(perl -e '$ARGV[0] =~ m{^(https?://[A-Za-z0-9.-]+(?::[0-9]+)?)(?
 FROM node:26-alpine AS ssr
 ENV NODE_ENV=production PORT=4000
 WORKDIR /app
-COPY --chown=root:root dist/devsonic.cl/server ./server
-COPY --chown=root:root dist/devsonic.cl/browser ./browser
+COPY --from=build --chown=root:root /app/dist/devsonic.cl/server ./server
+COPY --from=build --chown=root:root /app/dist/devsonic.cl/browser ./browser
 USER node
 EXPOSE 4000
 # The engine only answers allowed hosts, so the probe uses `localhost`.

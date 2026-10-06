@@ -32,7 +32,7 @@ function freePort() {
   });
 }
 
-const PORT = process.env.CSP_RENDER_PORT ?? (await freePort());
+const PORT = process.env.CSP_RENDER_PORT || (await freePort());
 // The SSR engine only accepts the `localhost` host (ALLOWED_HOSTS in src/server.ts).
 const ORIGIN = `http://localhost:${PORT}`;
 // Every kind of server-rendered page: listings, details, the experience page and a 404, in
