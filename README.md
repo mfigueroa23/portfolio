@@ -33,7 +33,7 @@ I enjoy understanding the whole picture: how the code is written, how it's deplo
 
 ## Languages
 
-The site is in English at its usual URLs and in Spanish under `/es` (for example `/es`, `/es/blog`, `/es/blog/rss.xml`). The interface texts live in typed dictionaries (`src/app/core/i18n/`), and the content comes from the API in the page's language; an item without a Spanish version is shown in English. The EN/ES switch in the navigation opens the same page in the other language and remembers the choice in a `lang` cookie for 365 days. A first visit from a browser that prefers Spanish will be redirected to `/es` by nginx, based on `Accept-Language` and that cookie; that nginx change is pending approval (Spec 004 T-29).
+The site is in English at its usual URLs and in Spanish under `/es` (for example `/es`, `/es/blog`, `/es/blog/rss.xml`). The interface texts live in typed dictionaries (`src/app/core/i18n/`), and the content comes from the API in the page's language; an item without a Spanish version is shown in English. The EN/ES switch in the navigation opens the same page in the other language and remembers the choice in a `lang` cookie for 365 days. On a first visit (no `lang` cookie) from a browser whose first language is Spanish, nginx redirects the English pages to their `/es` equivalent with a temporary `302`; those responses are marked `private` and `Vary: Accept-Language, Cookie` so shared caches don't reuse them. Feeds, files and assets are never redirected.
 
 ## Deployment
 
