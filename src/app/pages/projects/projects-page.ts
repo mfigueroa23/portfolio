@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { ProjectCard } from '../../components/project-card/project-card';
+import { LanguageService } from '../../core/i18n/language.service';
 import { ContentService } from '../../core/services/content.service';
 import { SeoService } from '../../core/services/seo.service';
 import { Unavailable } from '../unavailable/unavailable';
@@ -12,13 +13,11 @@ import { Unavailable } from '../unavailable/unavailable';
 })
 export class ProjectsPage {
   protected readonly projects = inject(ContentService).projects();
+  protected readonly language = inject(LanguageService);
+  protected readonly m = this.language.m;
 
   constructor() {
-    inject(SeoService).set({
-      title: 'Projects',
-      description:
-        'Every project by Marco Figueroa in depth: the problem, the architecture and what I learned.',
-      path: '/projects',
-    });
+    const { seoTitle, seoDescription } = this.m().pages.projects;
+    inject(SeoService).set({ title: seoTitle, description: seoDescription, path: '/projects' });
   }
 }

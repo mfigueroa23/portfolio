@@ -1,3 +1,5 @@
+import { Lang } from '../i18n/language';
+
 // Mirrors the API content collections. `position` is the display order set by the owner;
 // projects and experience entries are ordered by recency instead (Spec 003 RF-141, RF-142).
 export type ContentCollection =
@@ -11,6 +13,11 @@ export type ContentCollection =
 
 interface ContentItem {
   id: number;
+  /**
+   * Language of the item's texts: the API returns a translated item in Spanish on Spanish
+   * pages and an untranslated one entirely in English (Spec 004 RF-149 to RF-152).
+   */
+  lang?: Lang;
 }
 
 interface PositionedItem extends ContentItem {
@@ -33,6 +40,8 @@ export interface Experience extends ContentItem {
 
 export interface Project extends ContentItem {
   slug: string;
+  /** Spanish slug; the Spanish URL uses `slug` when it is null (RF-169). */
+  slugEs?: string | null;
   title: string;
   description: string;
   image: string;
@@ -72,6 +81,8 @@ export interface PostReference {
 
 export interface PostSummary extends ContentItem {
   slug: string;
+  /** Spanish slug; the Spanish URL uses `slug` when it is null (RF-169). */
+  slugEs?: string | null;
   title: string;
   summary: string;
   coverUrl: string | null;

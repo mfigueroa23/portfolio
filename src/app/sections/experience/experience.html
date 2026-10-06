@@ -8,17 +8,18 @@
     <article class="max-w-3xl mb-16">
       <span
         class="text-secondary-foreground text-sm font-medium tracking-wider uppercase animate-fade-in"
-        >Career Journey</span
+        >{{ m().experience.eyebrow }}</span
       >
       <h2
         class="text-4xl md:text-5xl font-bold mt-4 mb-6 animate-fade-in animation-delay-100 text-secondary-foreground"
       >
-        Experience that
-        <span class="font-serif italic font-normal text-white">speaks volumes.</span>
+        {{ m().experience.heading.lead }}
+        <span class="font-serif italic font-normal text-white">{{
+          m().experience.heading.accent
+        }}</span>
       </h2>
       <p class="text-muted-foreground animate-fade-in animation-delay-200">
-        A timeline of my professional growth, from customer support to system administration and
-        software development.
+        {{ m().experience.intro }}
       </p>
     </article>
 
@@ -35,6 +36,7 @@
             <article
               class="relative grid md:grid-cols-2 gap-8 animate-fade-in"
               [style.animationDelay]="($index + 1) * 150 + 'ms'"
+              [attr.lang]="language.itemLang(exp)"
             >
               <!-- Timeline Dot -->
               <div
@@ -77,12 +79,12 @@
       <!-- View More CTA -->
       <article class="text-center mt-16 animate-fade-in animation-delay-500">
         <a
-          href="/experience"
+          [href]="language.href('/experience')"
           class="inline-flex items-center justify-center gap-2 min-h-11 px-6 rounded-full border border-border text-foreground text-sm font-medium hover:border-primary hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
-          View more <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          {{ m().experience.viewMore }} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
         </a>
-        <p class="text-sm text-muted-foreground mt-3">Full history, details and certifications</p>
+        <p class="text-sm text-muted-foreground mt-3">{{ m().experience.viewMoreHint }}</p>
       </article>
     } @else {
       <!-- Empty State -->
@@ -94,10 +96,8 @@
         >
           <i class="fa-solid fa-briefcase text-2xl text-primary"></i>
         </div>
-        <h3 class="text-xl font-semibold mb-2">Experience coming soon</h3>
-        <p class="text-sm text-muted-foreground">
-          I'm updating this section. Please check back soon.
-        </p>
+        <h3 class="text-xl font-semibold mb-2">{{ m().experience.soon }}</h3>
+        <p class="text-sm text-muted-foreground">{{ m().experience.updating }}</p>
       </article>
     }
   </section>

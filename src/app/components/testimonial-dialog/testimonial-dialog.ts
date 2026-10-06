@@ -7,9 +7,9 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { LanguageService } from '../../core/i18n/language.service';
 import { TestimonialField } from '../../core/interfaces/testimonial';
 import { TestimonialService } from '../../core/services/testimonial.service';
-import { GENERIC_SEND_ERROR } from '../../core/utils/api-error';
 import { invalidTestimonialFields } from '../../core/utils/testimonial-validation';
 import { Button } from '../button/button';
 
@@ -33,6 +33,7 @@ const FIELD_IDS: Record<TestimonialField, string> = {
 export class TestimonialDialog {
   private readonly service = inject(TestimonialService);
   private readonly injector = inject(Injector);
+  protected readonly m = inject(LanguageService).m;
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('dialog');
   private trigger: HTMLElement | null = null;
 
@@ -97,7 +98,7 @@ export class TestimonialDialog {
     } catch (error) {
       this.status.set({
         type: 'error',
-        message: (error instanceof Error && error.message) || GENERIC_SEND_ERROR,
+        message: (error instanceof Error && error.message) || this.m().forms.sendError,
       });
     } finally {
       this.sending.set(false);

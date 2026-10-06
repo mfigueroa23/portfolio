@@ -1,3 +1,4 @@
+import { PlatformLocation } from '@angular/common';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TestimonialService } from '../../core/services/testimonial.service';
 import { TestimonialDialog } from './testimonial-dialog';
@@ -266,5 +267,60 @@ describe('TestimonialDialog', () => {
         false,
       );
     });
+  });
+});
+
+describe('TestimonialDialog in Spanish', () => {
+  beforeAll(() => {
+    HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
+      this.setAttribute('open', '');
+    };
+  });
+
+  afterAll(() => {
+    HTMLDialogElement.prototype.showModal = nativeShowModal;
+  });
+
+  it('shows its texts and errors in Spanish (RF-131, RF-180)', async () => {
+    const submit = vi.fn().mockRejectedValue(new Error(''));
+    await TestBed.configureTestingModule({
+      imports: [TestimonialDialog],
+      providers: [
+        { provide: TestimonialService, useValue: { submit } },
+        { provide: PlatformLocation, useValue: { pathname: '/es' } },
+      ],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(TestimonialDialog);
+    await fixture.whenStable();
+    fixture.componentInstance.open(null);
+    await fixture.whenStable();
+    const element: HTMLElement = fixture.nativeElement;
+    const form = element.querySelector('form')!;
+
+    expect(element.textContent).toContain(
+      'Tu email solo se usa para contactarte sobre este testimonio y nunca se publica.',
+    );
+    expect(element.querySelector('label[for="testimonial-role"]')?.textContent).toContain('Cargo');
+    expect(element.querySelector('button[aria-label="Cerrar"]')).not.toBeNull();
+
+    form.dispatchEvent(new Event('submit', { cancelable: true }));
+    await fixture.whenStable();
+    expect(element.querySelector('#testimonial-name-error')?.textContent).toContain(
+      'Escribe tu nombre',
+    );
+
+    for (const [id, value] of [
+      ['name', 'Ana'],
+      ['role', 'CTO'],
+      ['email', 'ana@example.com'],
+      ['text', 'Excelente.'],
+    ]) {
+      const input = element.querySelector<HTMLInputElement>(`#testimonial-${id}`)!;
+      input.value = value;
+      input.dispatchEvent(new Event('input'));
+    }
+    form.dispatchEvent(new Event('submit', { cancelable: true }));
+    await fixture.whenStable();
+    expect(element.textContent).toContain('No se pudo enviar el mensaje. Inténtalo más tarde.');
   });
 });

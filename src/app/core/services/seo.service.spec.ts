@@ -1,5 +1,7 @@
+import { PlatformLocation } from '@angular/common';
 import { DOCUMENT } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { LanguageService } from '../i18n/language.service';
 import { SeoService } from './seo.service';
 
 describe('SeoService', () => {
@@ -74,7 +76,8 @@ describe('SeoService', () => {
   });
 
   it('declares the RSS feed once, and drops it on pages that are not the blog', () => {
-    const feed = () => document.head.querySelectorAll('link[rel="alternate"]');
+    const feed = () =>
+      document.head.querySelectorAll('link[rel="alternate"][type="application/rss+xml"]');
     service.set({ title: 'Blog', description: 'Posts.', path: '/blog' });
     service.feedLink();
     service.feedLink();
@@ -85,5 +88,95 @@ describe('SeoService', () => {
 
     service.set({ title: 'Projects', description: 'Every project.', path: '/projects' });
     expect(feed().length).toBe(0);
+  });
+
+  describe('language versions', () => {
+    const hreflang = (lang: string) =>
+      document.head
+        .querySelector(`link[rel="alternate"][hreflang="${lang}"]`)
+        ?.getAttribute('href');
+
+    const onPage = (pathname: string): void => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [{ provide: PlatformLocation, useValue: { pathname } }],
+      });
+      service = TestBed.inject(SeoService);
+      document = TestBed.inject(DOCUMENT);
+    };
+
+    it('declares both versions and English as the default (RF-137 to RF-139)', () => {
+      service.set({ title: 'Blog', description: 'Posts.', path: '/blog' });
+
+      expect(hreflang('en')).toBe(`${site}/blog`);
+      expect(hreflang('es')).toBe(`${site}/es/blog`);
+      expect(hreflang('x-default')).toBe(`${site}/blog`);
+      expect(meta('property', 'og:locale')).toBe('en_US');
+      expect(meta('property', 'og:locale:alternate')).toBe('es_ES');
+    });
+
+    it('gives a Spanish page its own canonical URL and locale (RF-140, RF-141)', () => {
+      onPage('/es/blog');
+      service.set({ title: 'Blog', description: 'Artículos.', path: '/blog' });
+
+      expect(canonical()[0].getAttribute('href')).toBe(`${site}/es/blog`);
+      expect(meta('property', 'og:url')).toBe(`${site}/es/blog`);
+      expect(meta('property', 'og:locale')).toBe('es_ES');
+      expect(meta('property', 'og:locale:alternate')).toBe('en_US');
+      expect(hreflang('es')).toBe(`${site}/es/blog`);
+      expect(hreflang('x-default')).toBe(`${site}/blog`);
+    });
+
+    it('uses the given alternates and shares them with the language switch', () => {
+      onPage('/es/blog/hola');
+      service.set({
+        title: 'Hola',
+        description: 'Un post.',
+        path: '/es/blog/hola',
+        alternates: { en: '/blog/hello', es: '/es/blog/hola' },
+      });
+
+      expect(canonical()[0].getAttribute('href')).toBe(`${site}/es/blog/hola`);
+      expect(hreflang('en')).toBe(`${site}/blog/hello`);
+      expect(TestBed.inject(LanguageService).alternates()).toEqual({
+        en: '/blog/hello',
+        es: '/es/blog/hola',
+      });
+    });
+
+    it('replaces the language links instead of adding more', () => {
+      service.set({ title: 'Blog', description: 'Posts.', path: '/blog' });
+      service.set({ title: 'Blog', description: 'Posts.', path: '/blog/page/2' });
+
+      expect(document.head.querySelectorAll('link[hreflang]').length).toBe(3);
+      expect(hreflang('es')).toBe(`${site}/es/blog/page/2`);
+    });
+
+    it('describes the default image in the page language', () => {
+      onPage('/es');
+      service.set({ title: 'Inicio', description: 'Hola.', path: '/' });
+      expect(meta('property', 'og:image:alt')).toBe('Marco Figueroa — Desarrollador full-stack');
+    });
+
+    it('keeps the site title as is on the home', () => {
+      service.set({
+        title: 'Marco Figueroa — Full-Stack Developer',
+        description: 'Hi.',
+        path: '/',
+        fullTitle: true,
+      });
+      expect(document.title).toBe('Marco Figueroa — Full-Stack Developer');
+      expect(meta('property', 'og:url')).toBe(`${site}/`);
+    });
+
+    it('declares the Spanish feed on Spanish pages', () => {
+      onPage('/es/blog');
+      service.set({ title: 'Blog', description: 'Artículos.', path: '/blog' });
+      service.feedLink();
+      const feed = document.head.querySelector('link[type="application/rss+xml"]');
+
+      expect(feed?.getAttribute('href')).toBe(`${site}/es/blog/rss.xml`);
+      expect(feed?.getAttribute('title')).toBe('Marco Figueroa — Blog en español');
+    });
   });
 });

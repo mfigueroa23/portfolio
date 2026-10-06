@@ -1,3 +1,4 @@
+import { PlatformLocation } from '@angular/common';
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
@@ -13,7 +14,7 @@ describe('TestimonialService', () => {
     testimonial: 'Great to work with.',
     website: '',
   };
-  const url = `${API_URL}/testimonials`;
+  const url = `${API_URL}/testimonials?lang=en`;
   let service: TestimonialService;
   let http: HttpTestingController;
 
@@ -60,5 +61,29 @@ describe('TestimonialService', () => {
       statusText: 'Bad Gateway',
     });
     await expect(result).rejects.toThrow('Failed to send message. Please try again later.');
+  });
+});
+
+describe('TestimonialService on Spanish pages', () => {
+  it('tells the API the page language (RF-177)', async () => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: PlatformLocation, useValue: { pathname: '/es' } },
+      ],
+    });
+    const http = TestBed.inject(HttpTestingController);
+    const result = TestBed.inject(TestimonialService).submit({
+      name: 'Ada',
+      role: 'CTO',
+      email: 'ada@example.com',
+      testimonial: 'Excelente.',
+    });
+    http
+      .expectOne(`${API_URL}/testimonials?lang=es`)
+      .flush({ message: '¡Gracias! Tu testimonio aparecerá cuando haya sido revisado.' });
+    await expect(result).resolves.toContain('¡Gracias!');
+    http.verify();
   });
 });

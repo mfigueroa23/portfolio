@@ -9,11 +9,14 @@
   <div class="p-6 md:p-8">
     <header class="flex items-start justify-between gap-4 mb-6">
       <h2 id="testimonial-dialog-title" class="text-2xl font-bold">
-        Leave a <span class="font-serif italic font-normal text-primary">testimonial</span>
+        {{ m().testimonialDialog.titleLead }}
+        <span class="font-serif italic font-normal text-primary">{{
+          m().testimonialDialog.titleAccent
+        }}</span>
       </h2>
       <button
         type="button"
-        aria-label="Close"
+        [attr.aria-label]="m().testimonialDialog.close"
         data-close
         class="p-2 -m-2 rounded-full text-muted-foreground hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary cursor-pointer"
         (click)="close()"
@@ -25,12 +28,14 @@
     @if (status()?.type !== 'success') {
       <form class="space-y-5" novalidate (submit)="onSubmit($event)">
         <div>
-          <label [for]="ids.name" class="block text-sm font-medium mb-2">Name</label>
+          <label [for]="ids.name" class="block text-sm font-medium mb-2">{{
+            m().testimonialDialog.name
+          }}</label>
           <input
             [id]="ids.name"
             type="text"
             autocomplete="name"
-            placeholder="Your name..."
+            [placeholder]="m().testimonialDialog.namePlaceholder"
             [value]="name()"
             (input)="name.set($any($event.target).value)"
             [attr.aria-invalid]="isInvalid('name') || null"
@@ -39,17 +44,19 @@
           />
           @if (isInvalid('name')) {
             <p [id]="ids.name + '-error'" class="mt-2 text-sm text-red-400">
-              Enter your name: up to 100 characters on one line.
+              {{ m().testimonialDialog.nameError }}
             </p>
           }
         </div>
         <div>
-          <label [for]="ids.role" class="block text-sm font-medium mb-2">Role</label>
+          <label [for]="ids.role" class="block text-sm font-medium mb-2">{{
+            m().testimonialDialog.role
+          }}</label>
           <input
             [id]="ids.role"
             type="text"
             autocomplete="organization-title"
-            placeholder="Your role and company..."
+            [placeholder]="m().testimonialDialog.rolePlaceholder"
             [value]="role()"
             (input)="role.set($any($event.target).value)"
             [attr.aria-invalid]="isInvalid('role') || null"
@@ -58,12 +65,14 @@
           />
           @if (isInvalid('role')) {
             <p [id]="ids.role + '-error'" class="mt-2 text-sm text-red-400">
-              Enter your role: up to 100 characters on one line.
+              {{ m().testimonialDialog.roleError }}
             </p>
           }
         </div>
         <div>
-          <label [for]="ids.email" class="block text-sm font-medium mb-2">Email</label>
+          <label [for]="ids.email" class="block text-sm font-medium mb-2">{{
+            m().testimonialDialog.email
+          }}</label>
           <input
             [id]="ids.email"
             type="email"
@@ -78,20 +87,22 @@
             class="w-full px-4 py-3 bg-surface rounded-xl border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
           />
           <p [id]="ids.email + '-privacy'" class="mt-2 text-xs text-muted-foreground">
-            Your email is only used to contact you about this testimonial and is never published.
+            {{ m().testimonialDialog.emailPrivacy }}
           </p>
           @if (isInvalid('email')) {
             <p [id]="ids.email + '-error'" class="mt-2 text-sm text-red-400">
-              Enter a valid email address of up to 200 characters.
+              {{ m().testimonialDialog.emailError }}
             </p>
           }
         </div>
         <div>
-          <label [for]="ids.testimonial" class="block text-sm font-medium mb-2">Testimonial</label>
+          <label [for]="ids.testimonial" class="block text-sm font-medium mb-2">{{
+            m().testimonialDialog.testimonial
+          }}</label>
           <textarea
             [id]="ids.testimonial"
             rows="5"
-            placeholder="What was it like to work together?"
+            [placeholder]="m().testimonialDialog.testimonialPlaceholder"
             [value]="testimonial()"
             (input)="testimonial.set($any($event.target).value)"
             [attr.aria-invalid]="isInvalid('testimonial') || null"
@@ -100,7 +111,7 @@
           ></textarea>
           @if (isInvalid('testimonial')) {
             <p [id]="ids.testimonial + '-error'" class="mt-2 text-sm text-red-400">
-              Write your testimonial: up to 500 characters.
+              {{ m().testimonialDialog.testimonialError }}
             </p>
           }
         </div>
@@ -122,9 +133,9 @@
 
         <app-button size="lg" extraClass="w-full" class="block" [disabled]="sending()">
           @if (sending()) {
-            Sending... <i class="fa-solid fa-spinner fa-spin"></i>
+            {{ m().testimonialDialog.sending }} <i class="fa-solid fa-spinner fa-spin"></i>
           } @else {
-            Send Testimonial <i class="fa-solid fa-paper-plane"></i>
+            {{ m().testimonialDialog.send }} <i class="fa-solid fa-paper-plane"></i>
           }
         </app-button>
       </form>

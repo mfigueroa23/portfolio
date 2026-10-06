@@ -1,3 +1,4 @@
+import { PlatformLocation } from '@angular/common';
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
@@ -13,6 +14,7 @@ describe('Testimonials', () => {
     { id: 2, position: 1, quote: 'Second quote', author: 'Linus', role: 'Dev', avatar: '/l.webp' },
   ];
   let collection: ReturnType<typeof vi.fn>;
+  let pathname = '/';
 
   const render = async (data: Testimonial[]): Promise<ComponentFixture<Testimonials>> => {
     collection = vi.fn(() => signal(data));
@@ -21,6 +23,7 @@ describe('Testimonials', () => {
       providers: [
         { provide: ContentService, useValue: { collection } },
         { provide: TestimonialService, useValue: { submit: vi.fn() } },
+        { provide: PlatformLocation, useValue: { pathname } },
       ],
     }).compileComponents();
     const fixture = TestBed.createComponent(Testimonials);
@@ -154,6 +157,24 @@ describe('Testimonials', () => {
       await fixture.whenStable();
 
       expect(open).toHaveBeenCalledWith(trigger);
+    });
+  });
+
+  describe('in Spanish', () => {
+    beforeEach(() => (pathname = '/es'));
+    afterEach(() => (pathname = '/'));
+
+    it('translates its texts and the carousel labels (RF-131)', async () => {
+      const fixture = await render([{ ...items[0], lang: 'en' }, items[1]]);
+      const element: HTMLElement = fixture.nativeElement;
+
+      expect(element.textContent).toContain('Lo que dicen');
+      expect(element.querySelector('[aria-label="Testimonio siguiente"]')).not.toBeNull();
+      expect(element.querySelector('[aria-label="Ver testimonio 2"]')).not.toBeNull();
+      expect(element.textContent).toContain('Deja un testimonio');
+      expect(element.querySelector('blockquote')?.closest('article')?.getAttribute('lang')).toBe(
+        'en',
+      );
     });
   });
 });

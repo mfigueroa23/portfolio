@@ -1,7 +1,10 @@
-<header class="fixed top-0 right-0 left-0 z-50 transition-all duration-500" [class]="isScrolled() ? 'glass-strong py-3' : 'bg-transparent py-5'">
+<header
+  class="fixed top-0 right-0 left-0 z-50 transition-all duration-500"
+  [class]="isScrolled() ? 'glass-strong py-3' : 'bg-transparent py-5'"
+>
   <nav class="container mx-auto px-6 flex items-center justify-between">
     <!-- Logo -->
-    <a href="/#" class="text-xl font-bold tracking-tight hover:text-primary">
+    <a [href]="language.href('/#')" class="text-xl font-bold tracking-tight hover:text-primary">
       MF<span class="text-primary">.</span>
     </a>
 
@@ -9,16 +12,22 @@
     <section class="hidden md:flex items-center gap-1">
       <article class="glass rounded-full px-2 py-1 flex items-center gap-1">
         @for (link of navLinks; track $index) {
-          <a href="{{ link.href }}" class="px-4 py-2 text-sm text-muted-foreground hover:text-foreground rounded-full hover:bg-surface">
+          <a
+            href="{{ link.href }}"
+            class="px-4 py-2 text-sm text-muted-foreground hover:text-foreground rounded-full hover:bg-surface"
+          >
             {{ link.label }}
           </a>
         }
       </article>
     </section>
 
-    <!-- Contact Button -->
-    <section class="hidden md:block">
-      <app-button size="sm" href="/#contact">Contact Me</app-button>
+    <!-- Language Switch & Contact Button -->
+    <section class="hidden md:flex items-center gap-4">
+      <app-language-switch />
+      <app-button size="sm" [href]="language.href('/#contact')">{{
+        language.m().nav.contactMe
+      }}</app-button>
     </section>
 
     <!-- Mobile Navigation Button -->
@@ -32,11 +41,17 @@
     <section class="md:hidden glass-strong animate-fade-in">
       <nav class="container mx-auto px-6 py-6 flex flex-col gap-4 items-center">
         @for (link of navLinks; track $index) {
-          <a href="{{ link.href }}" class="text-lg text-muted-foreground hover:text-foreground py-2">
+          <a
+            href="{{ link.href }}"
+            class="text-lg text-muted-foreground hover:text-foreground py-2"
+          >
             {{ link.label }}
           </a>
         }
-        <app-button size="sm" href="/#contact">Contact Me</app-button>
+        <app-language-switch />
+        <app-button size="sm" [href]="language.href('/#contact')">{{
+          language.m().nav.contactMe
+        }}</app-button>
       </nav>
     </section>
   }

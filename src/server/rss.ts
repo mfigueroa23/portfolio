@@ -1,7 +1,9 @@
+import { Lang, localizePath } from '../app/core/i18n/language';
+import { en } from '../app/core/i18n/messages.en';
+import { es } from '../app/core/i18n/messages.es';
 import { PostSummary } from '../app/core/interfaces/content';
 
-const TITLE = 'Marco Figueroa — Blog';
-const DESCRIPTION = 'Write-ups on building, deploying and running software.';
+const FEEDS = { en: en.feed, es: es.feed };
 
 const ESCAPES: Record<string, string> = {
   '&': '&amp;',
@@ -20,8 +22,10 @@ function rfc822(iso: string): string {
   return new Date(iso).toUTCString().replace('GMT', '+0000');
 }
 
-function item(post: PostSummary, siteUrl: string): string {
-  const link = `${siteUrl}/blog/${post.slug}`;
+function item(post: PostSummary, siteUrl: string, lang: Lang): string {
+  // Spanish items link to their Spanish URL, with the English slug as fallback (RF-144).
+  const slug = lang === 'es' ? (post.slugEs ?? post.slug) : post.slug;
+  const link = `${siteUrl}${localizePath(`/blog/${slug}`, lang)}`;
   const categories = post.tags.map((tag) => `\n      <category>${escapeXml(tag)}</category>`);
   return `
     <item>
@@ -35,19 +39,21 @@ function item(post: PostSummary, siteUrl: string): string {
 
 /**
  * RSS 2.0 feed of the given posts (the API's latest 20, newest first) with absolute links
- * (RF-107); a valid channel without items when nothing is published (RF-108).
+ * (RF-107); a valid channel without items when nothing is published (RF-108). The Spanish feed
+ * lives at `/es/blog/rss.xml` with a Spanish channel (Spec 004 RF-143).
  */
-export function buildRssFeed(posts: PostSummary[], siteUrl: string): string {
-  const blog = `${siteUrl}/blog`;
+export function buildRssFeed(posts: PostSummary[], siteUrl: string, lang: Lang = 'en'): string {
+  const blog = `${siteUrl}${localizePath('/blog', lang)}`;
+  const { title, description } = FEEDS[lang];
   return `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>${escapeXml(TITLE)}</title>
+    <title>${escapeXml(title)}</title>
     <link>${escapeXml(blog)}</link>
-    <description>${escapeXml(DESCRIPTION)}</description>
-    <language>en</language>
+    <description>${escapeXml(description)}</description>
+    <language>${lang}</language>
     <atom:link href="${escapeXml(`${blog}/rss.xml`)}" rel="self" type="application/rss+xml"/>${posts
-      .map((post) => item(post, siteUrl))
+      .map((post) => item(post, siteUrl, lang))
       .join('')}
   </channel>
 </rss>

@@ -1,3 +1,4 @@
+import { PlatformLocation } from '@angular/common';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { RESPONSE_INIT } from '@angular/core';
@@ -20,6 +21,7 @@ describe('ProjectsPage', () => {
   });
   let seo: { set: ReturnType<typeof vi.fn> };
   let init: ResponseInit;
+  let pathname = '/';
 
   const render = async (value: Project[] | undefined, error: ApiError | null = null) => {
     seo = { set: vi.fn() };
@@ -35,6 +37,7 @@ describe('ProjectsPage', () => {
         { provide: ContentService, useValue: { projects } },
         { provide: SeoService, useValue: seo },
         { provide: RESPONSE_INIT, useValue: init },
+        { provide: PlatformLocation, useValue: { pathname } },
       ],
     }).compileComponents();
     const fixture = TestBed.createComponent(ProjectsPage);
@@ -67,5 +70,27 @@ describe('ProjectsPage', () => {
     const element = await render(undefined, 'unavailable');
     expect(init.status).toBe(503);
     expect(element.textContent).toContain('Temporarily unavailable');
+  });
+
+  describe('in Spanish', () => {
+    beforeEach(() => (pathname = '/es/projects'));
+    afterEach(() => (pathname = '/'));
+
+    it('translates its texts and links to the Spanish pages (RF-131)', async () => {
+      const element = await render([{ ...project(1), slugEs: 'proyecto-1', lang: 'es' }]);
+
+      expect(element.querySelector('h1')?.textContent).toContain('Cada proyecto,');
+      expect(element.querySelector('a[href="/es"]')?.textContent).toContain('Volver al inicio');
+      expect(element.querySelector('a[href="/es/projects/proyecto-1"]')).not.toBeNull();
+      expect(seo.set).toHaveBeenCalledWith(
+        expect.objectContaining({ title: 'Proyectos', path: '/projects' }),
+      );
+    });
+
+    it('shows the Spanish 503 page (RF-146)', async () => {
+      const element = await render(undefined, 'unavailable');
+      expect(init.status).toBe(503);
+      expect(element.textContent).toContain('No disponible por ahora');
+    });
   });
 });

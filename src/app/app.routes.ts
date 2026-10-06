@@ -3,7 +3,9 @@ import { Routes } from '@angular/router';
 const notFound = () => import('./pages/not-found/not-found').then((comp) => comp.NotFound);
 const blogPage = () => import('./pages/blog/blog-page').then((comp) => comp.BlogPage);
 
-export const routes: Routes = [
+// Every page exists once and is mounted twice: English at today's URLs, Spanish under `/es`
+// (RF-118 to RF-120); the language comes from the URL (LanguageService).
+const pageRoutes: Routes = [
   {
     path: '',
     loadComponent: () => import('./pages/home/home').then((comp) => comp.Home),
@@ -31,5 +33,10 @@ export const routes: Routes = [
     path: 'blog/:slug',
     loadComponent: () => import('./pages/post/post-page').then((comp) => comp.PostPage),
   },
+];
+
+export const routes: Routes = [
+  ...pageRoutes,
+  { path: 'es', data: { lang: 'es' }, children: pageRoutes },
   { path: '**', loadComponent: notFound },
 ];

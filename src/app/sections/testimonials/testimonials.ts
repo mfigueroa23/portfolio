@@ -1,5 +1,6 @@
 import { afterNextRender, Component, computed, inject, signal } from '@angular/core';
 import { TestimonialDialog } from '../../components/testimonial-dialog/testimonial-dialog';
+import { LanguageService } from '../../core/i18n/language.service';
 import { Testimonial } from '../../core/interfaces/content';
 import { ContentService } from '../../core/services/content.service';
 import { initials } from '../../core/utils/initials';
@@ -11,6 +12,8 @@ import { initials } from '../../core/utils/initials';
   templateUrl: './testimonials.html',
 })
 export class Testimonials {
+  protected readonly language = inject(LanguageService);
+  protected readonly m = this.language.m;
   public readonly testimonials = inject(ContentService).collection<Testimonial>('testimonials');
   public readonly activeIndex = signal(0);
   public readonly active = computed(() => this.testimonials()[this.activeIndex()]);

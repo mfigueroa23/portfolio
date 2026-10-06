@@ -8,13 +8,15 @@
     <article class="text-center max-w-3xl mx-auto mb-16">
       <span
         class="text-secondary-foreground text-sm font-medium tracking-wider uppercase animate-fade-in"
-        >What People Say</span
+        >{{ m().testimonials.eyebrow }}</span
       >
       <h2
         class="text-4xl md:text-5xl font-bold mt-4 mb-6 animate-fade-in animation-delay-100 text-secondary-foreground"
       >
-        Kind words from
-        <span class="font-serif italic font-normal text-white">amazing people.</span>
+        {{ m().testimonials.heading.lead }}
+        <span class="font-serif italic font-normal text-white">{{
+          m().testimonials.heading.accent
+        }}</span>
       </h2>
     </article>
 
@@ -25,6 +27,7 @@
           <!-- Main Testimonial -->
           <article
             class="glass p-8 rounded-3xl md:p-12 glow-border animate-fade-in animation-delay-200"
+            [attr.lang]="language.itemLang(testimonial)"
           >
             <div
               class="absolute -top-4 left-8 w-12 h-12 rounded-full bg-primary flex items-center justify-center"
@@ -60,7 +63,7 @@
           <nav class="flex items-center justify-center gap-4 mt-8">
             <button
               class="p-3 rounded-full glass hover:bg-primary/10 hover:text-primary transition-all cursor-pointer"
-              aria-label="Previous testimonial"
+              [attr.aria-label]="m().testimonials.previous"
               (click)="previous()"
             >
               <i class="fa-solid fa-chevron-left"></i>
@@ -74,14 +77,14 @@
                       ? 'w-8 bg-primary'
                       : 'w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50'
                   "
-                  [attr.aria-label]="'Show testimonial ' + ($index + 1)"
+                  [attr.aria-label]="m().testimonials.show($index + 1)"
                   (click)="activeIndex.set($index)"
                 ></button>
               }
             </div>
             <button
               class="p-3 rounded-full glass hover:bg-primary/10 hover:text-primary transition-all cursor-pointer"
-              aria-label="Next testimonial"
+              [attr.aria-label]="m().testimonials.next"
               (click)="next()"
             >
               <i class="fa-solid fa-chevron-right"></i>
@@ -98,10 +101,8 @@
           >
             <i class="fa-solid fa-quote-left text-2xl text-primary"></i>
           </div>
-          <h3 class="text-xl font-semibold mb-2">Testimonials coming soon</h3>
-          <p class="text-sm text-muted-foreground">
-            Have we worked together? I'd love to hear your feedback.
-          </p>
+          <h3 class="text-xl font-semibold mb-2">{{ m().testimonials.soon }}</h3>
+          <p class="text-sm text-muted-foreground">{{ m().testimonials.soonText }}</p>
         </section>
       }
 
@@ -113,7 +114,8 @@
             class="inline-flex items-center gap-2 px-6 py-3 rounded-full glass text-primary font-medium hover:bg-primary/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-all cursor-pointer"
             (click)="dialog.open(trigger)"
           >
-            <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> Leave a testimonial
+            <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+            {{ m().testimonials.leave }}
           </button>
         </div>
         <app-testimonial-dialog #dialog />

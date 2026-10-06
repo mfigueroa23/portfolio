@@ -3,13 +3,13 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs';
 import { LocalDate } from '../../components/local-date/local-date';
+import { LanguageService } from '../../core/i18n/language.service';
+import { PostSummary } from '../../core/interfaces/content';
 import { ContentService } from '../../core/services/content.service';
 import { SeoService } from '../../core/services/seo.service';
 import { tagKey } from '../../core/utils/text';
 import { NotFound } from '../not-found/not-found';
 import { Unavailable } from '../unavailable/unavailable';
-
-const DESCRIPTION = 'Write-ups by Marco Figueroa on building, deploying and running software.';
 
 /**
  * `/blog`, `/blog/page/<n>`, `/blog/tag/<tag>` and `/blog/tag/<tag>/page/<n>`: published posts,
@@ -28,6 +28,8 @@ export class BlogPage {
     { requireSync: true },
   );
   protected readonly tag = computed(() => this.params().tag);
+  protected readonly language = inject(LanguageService);
+  protected readonly m = this.language.m;
 
   /** Page 1 has no `/page/1` URL, so only integers ≥ 2 are valid there (RF-99). */
   private readonly pageNumber = computed<number | null>(() => {
@@ -53,13 +55,20 @@ export class BlogPage {
 
   protected readonly tagKey = tagKey;
 
+  // Tag keys are the same in both languages (RF-165).
   private readonly basePath = computed(() => {
     const tag = this.tag();
-    return tag ? `/blog/tag/${tag}` : '/blog';
+    return this.language.href(tag ? `/blog/tag/${tag}` : '/blog');
   });
 
   protected pageHref(page: number): string {
     return page === 1 ? this.basePath() : `${this.basePath()}/page/${page}`;
+  }
+
+  /** A post's URL in the page language, with its Spanish slug under `/es` (RF-169). */
+  protected postHref(post: PostSummary): string {
+    const slug = this.language.lang() === 'es' ? (post.slugEs ?? post.slug) : post.slug;
+    return this.language.href(`/blog/${slug}`);
   }
 
   constructor() {
@@ -67,11 +76,12 @@ export class BlogPage {
     effect(() => {
       const listing = this.posts.value();
       if (!listing) return;
+      const blog = this.m().pages.blog;
       const name = listing.tag ?? this.tag();
-      const title = name ? `Posts tagged ${name}` : 'Blog';
+      const title = name ? blog.seoTagged(name) : blog.seoTitle;
       seo.set({
-        title: listing.page > 1 ? `${title} — Page ${listing.page}` : title,
-        description: DESCRIPTION,
+        title: listing.page > 1 ? blog.seoPage(title, listing.page) : title,
+        description: blog.seoDescription,
         // Each listing page is its own canonical URL (RF-118).
         path: this.pageHref(listing.page),
       });

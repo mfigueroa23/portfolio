@@ -1,3 +1,4 @@
+import { PlatformLocation } from '@angular/common';
 import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
@@ -93,7 +94,7 @@ describe('ContentService', () => {
 
     it('adds the query parameters to both requests', () => {
       service.collection<Technology>('projects', { limit: 4 });
-      const limited = `${API_URL}/content/projects?limit=4`;
+      const limited = `${API_URL}/content/projects?limit=4&lang=en`;
       http
         .expectOne((req) => req.urlWithParams === limited && req.transferCache !== false)
         .flush([]);
@@ -148,7 +149,7 @@ describe('ContentService content pages', () => {
   it('loads every published project', async () => {
     const projects = create(() => service.projects());
     TestBed.tick();
-    http.expectOne(`${API_URL}/content/projects`).flush([project]);
+    http.expectOne(`${API_URL}/content/projects?lang=en`).flush([project]);
     await settle();
     expect(projects.value()).toEqual([project]);
     expect(projects.error()).toBeNull();
@@ -157,7 +158,7 @@ describe('ContentService content pages', () => {
   it('loads one project by its slug', async () => {
     const detail = create(() => service.project(() => 'portfolio'));
     TestBed.tick();
-    http.expectOne(`${API_URL}/content/projects/portfolio`).flush(project);
+    http.expectOne(`${API_URL}/content/projects/portfolio?lang=en`).flush(project);
     await settle();
     expect(detail.value()).toEqual(project);
   });
@@ -166,7 +167,7 @@ describe('ContentService content pages', () => {
     const detail = create(() => service.project(() => 'missing'));
     TestBed.tick();
     http
-      .expectOne(`${API_URL}/content/projects/missing`)
+      .expectOne(`${API_URL}/content/projects/missing?lang=en`)
       .flush({ error: 'Not found.' }, { status: 404, statusText: 'Not Found' });
     await settle();
     expect(detail.error()).toBe('notFound');
@@ -177,7 +178,7 @@ describe('ContentService content pages', () => {
     const detail = create(() => service.project(() => 'portfolio'));
     TestBed.tick();
     http
-      .expectOne(`${API_URL}/content/projects/portfolio`)
+      .expectOne(`${API_URL}/content/projects/portfolio?lang=en`)
       .flush({ error: 'Internal server error.' }, { status: 500, statusText: 'Error' });
     await settle();
     expect(detail.error()).toBe('unavailable');
@@ -187,7 +188,7 @@ describe('ContentService content pages', () => {
     const experiences = create(() => service.experiences());
     TestBed.tick();
     http
-      .expectOne(`${API_URL}/content/experiences`)
+      .expectOne(`${API_URL}/content/experiences?lang=en`)
       .error(new ProgressEvent('error'), { status: 0 });
     await settle();
     expect(experiences.error()).toBe('unavailable');
@@ -196,7 +197,7 @@ describe('ContentService content pages', () => {
   it('loads the certifications', async () => {
     const certifications = create(() => service.certifications());
     TestBed.tick();
-    http.expectOne(`${API_URL}/content/certifications`).flush([]);
+    http.expectOne(`${API_URL}/content/certifications?lang=en`).flush([]);
     await settle();
     expect(certifications.value()).toEqual([]);
   });
@@ -215,14 +216,14 @@ describe('ContentService content pages', () => {
       ),
     );
     TestBed.tick();
-    http.expectOne(`${API_URL}/content/posts?page=2`).flush({
+    http.expectOne(`${API_URL}/content/posts?page=2&lang=en`).flush({
       items: [],
       page: 2,
       totalPages: 2,
       total: 11,
       tag: null,
     });
-    http.expectOne(`${API_URL}/content/posts?page=1&tag=next-js`).flush({
+    http.expectOne(`${API_URL}/content/posts?page=1&tag=next-js&lang=en`).flush({
       items: [],
       page: 1,
       totalPages: 1,
@@ -251,7 +252,7 @@ describe('ContentService content pages', () => {
   it('loads one post by its slug, encoding it', async () => {
     const post = create(() => service.post(() => 'a b'));
     TestBed.tick();
-    http.expectOne(`${API_URL}/content/posts/a%20b`).flush({ slug: 'a b' });
+    http.expectOne(`${API_URL}/content/posts/a%20b?lang=en`).flush({ slug: 'a b' });
     await settle();
     expect(post.value()?.slug).toBe('a b');
   });
@@ -259,8 +260,48 @@ describe('ContentService content pages', () => {
   it('does not request the content again in the browser after rendering', async () => {
     create(() => service.projects());
     TestBed.tick();
-    http.expectOne(`${API_URL}/content/projects`).flush([project]);
+    http.expectOne(`${API_URL}/content/projects?lang=en`).flush([project]);
     TestBed.tick();
     http.expectNone((req) => req.transferCache === false);
+  });
+});
+
+describe('ContentService on Spanish pages (RF-150, RF-151)', () => {
+  let service: ContentService;
+  let http: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: PlatformLocation, useValue: { pathname: '/es/blog' } },
+      ],
+    });
+    service = TestBed.inject(ContentService);
+    http = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => http.verify());
+
+  it('asks the collections in Spanish, on both requests', () => {
+    service.collection<Technology>('highlights', { limit: 4 });
+    const url = `${API_URL}/content/highlights?limit=4&lang=es`;
+    http.expectOne((req) => req.urlWithParams === url && req.transferCache !== false).flush([]);
+    TestBed.tick();
+    http.expectOne((req) => req.urlWithParams === url && req.transferCache === false).flush([]);
+  });
+
+  it('asks the content pages in Spanish', () => {
+    TestBed.runInInjectionContext(() => {
+      service.post(() => 'hola');
+      service.postPage(
+        () => 1,
+        () => 'angular',
+      );
+    });
+    TestBed.tick();
+    http.expectOne(`${API_URL}/content/posts/hola?lang=es`).flush({});
+    http.expectOne(`${API_URL}/content/posts?page=1&tag=angular&lang=es`).flush({});
   });
 });

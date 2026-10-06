@@ -8,19 +8,23 @@
 }
 
 @if (post.value(); as item) {
-  <section class="container mx-auto px-6 pt-32 md:pt-40 pb-28 max-w-6xl">
+  <section
+    class="container mx-auto px-6 pt-32 md:pt-40 pb-28 max-w-6xl"
+    [attr.lang]="language.itemLang(item)"
+  >
     <a
-      href="/blog"
+      [href]="language.href('/blog')"
+      [attr.lang]="language.itemLang(item) && language.lang()"
       class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
     >
-      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All posts
+      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {{ m().pages.post.all }}
     </a>
 
     <header class="max-w-3xl mt-8 mb-10">
       <div class="flex flex-wrap gap-2">
         @for (tag of item.tags; track $index) {
           <a
-            href="/blog/tag/{{ tagKey(tag) }}"
+            [href]="language.href('/blog/tag/' + tagKey(tag))"
             class="inline-flex items-center min-h-8 px-3 rounded-full bg-surface text-xs font-medium border border-border/50 text-muted-foreground hover:border-primary/50 hover:text-primary transition-colors"
             >{{ tag }}</a
           >
@@ -32,10 +36,13 @@
           <span class="font-serif italic font-normal text-white">{{ heading().accent }}</span>
         }
       </h1>
-      <p class="flex items-center gap-2 text-sm text-muted-foreground">
+      <p
+        class="flex items-center gap-2 text-sm text-muted-foreground"
+        [attr.lang]="language.itemLang(item) && language.lang()"
+      >
         <app-local-date [iso]="item.publishedAt" />
         <span aria-hidden="true">·</span>
-        <span>{{ item.readingMinutes }} min read</span>
+        <span>{{ m().pages.readingTime(item.readingMinutes) }}</span>
       </p>
     </header>
 
@@ -57,7 +64,13 @@
 
         @if (item.references.length) {
           <section aria-labelledby="references" class="mt-14">
-            <h2 id="references" class="font-serif text-3xl text-foreground mb-4">References</h2>
+            <h2
+              id="references"
+              class="font-serif text-3xl text-foreground mb-4"
+              [attr.lang]="language.itemLang(item) && language.lang()"
+            >
+              {{ m().pages.post.references }}
+            </h2>
             <ul>
               @for (reference of item.references; track $index) {
                 <li class="flex items-start gap-3 py-3 border-b border-border">
@@ -79,15 +92,20 @@
       @if (toc().length) {
         <!-- Above the body on narrow screens, sticky beside it from 900 px (mockup). -->
         <aside
-          aria-label="Table of contents"
+          [attr.aria-label]="m().pages.post.tocLabel"
           class="glass rounded-2xl p-5 order-first min-[900px]:order-none min-[900px]:sticky min-[900px]:top-28"
         >
-          <p class="text-sm font-semibold mb-2">On this page</p>
+          <p
+            class="text-sm font-semibold mb-2"
+            [attr.lang]="language.itemLang(item) && language.lang()"
+          >
+            {{ m().pages.post.onThisPage }}
+          </p>
           <nav>
             @for (entry of toc(); track entry.id) {
               <!-- Full path: with <base href="/">, a bare #id would point at the home. -->
               <a
-                href="/blog/{{ item.slug }}#{{ entry.id }}"
+                href="{{ path() }}#{{ entry.id }}"
                 class="block py-1.5 text-sm leading-snug text-muted-foreground hover:text-foreground transition-colors"
                 [class.pl-4]="entry.level === 3"
                 >{{ entry.text }}</a

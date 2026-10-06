@@ -4,40 +4,28 @@
       <!-- Left Column -->
       <section class="space-y-8">
         <article class="animate-fade-in">
-          <span class="text-secondary-foreground text-sm font-medium tracking-wider uppercase"
-            >About Me</span
-          >
+          <span class="text-secondary-foreground text-sm font-medium tracking-wider uppercase">{{
+            m().about.eyebrow
+          }}</span>
         </article>
 
         <h2
           class="text-4xl md:text-5xl font-bold leading-tight animate-fade-in animation-delay-100 text-secondary-foreground"
         >
-          From the server room,
-          <span class="font-serif italic font-normal text-white">to the browser.</span>
+          {{ m().about.heading.lead }}
+          <span class="font-serif italic font-normal text-white">{{
+            m().about.heading.accent
+          }}</span>
         </h2>
 
         <article class="space-y-4 text-muted-foreground animate-fade-in animation-delay-200">
-          <p>
-            I'm a software engineer and system administrator based in Santiago, Chile, with 3 years
-            of experience supporting and operating critical systems — Windows, Linux, databases and
-            TLS/SSL certificates.
-          </p>
-          <p>
-            Today I build AI-powered solutions with Python, FastAPI, LangGraph and Next.js, and I
-            work across the stack with Angular, Node.js and TypeScript, backed by CI/CD pipelines,
-            Docker and Kubernetes.
-          </p>
-          <p>
-            I enjoy understanding the whole picture: how the code is written, how it's deployed and
-            how it keeps running in production.
-          </p>
+          @for (paragraph of m().about.paragraphs; track $index) {
+            <p>{{ paragraph }}</p>
+          }
         </article>
 
         <article class="glass rounded-2xl p-6 glow-border animate-fade-in animation-delay-300">
-          <p class="text-lg font-medium italic text-foreground">
-            "My goal is to build software that is simple to use, easy to maintain and reliable to
-            operate."
-          </p>
+          <p class="text-lg font-medium italic text-foreground">{{ m().about.quote }}</p>
         </article>
       </section>
 
@@ -47,6 +35,7 @@
           <article
             class="glass p-6 rounded-2xl animate-fade-in"
             [style.animationDelay]="($index + 1) * 100 + 'ms'"
+            [attr.lang]="language.itemLang(item)"
           >
             <div
               class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 hover:bg-primary/20"
@@ -64,10 +53,8 @@
             >
               <i class="fa-solid fa-star text-xl text-primary"></i>
             </div>
-            <h3 class="text-lg font-semibold mb-2">Highlights coming soon</h3>
-            <p class="text-sm text-muted-foreground">
-              I'm updating this section. Please check back soon.
-            </p>
+            <h3 class="text-lg font-semibold mb-2">{{ m().about.highlightsSoon }}</h3>
+            <p class="text-sm text-muted-foreground">{{ m().about.updating }}</p>
           </article>
         }
       </section>

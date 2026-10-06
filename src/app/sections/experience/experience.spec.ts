@@ -1,3 +1,4 @@
+import { PlatformLocation } from '@angular/common';
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ContentService } from '../../core/services/content.service';
@@ -28,12 +29,16 @@ describe('Experience', () => {
     },
   ];
   let collection: ReturnType<typeof vi.fn>;
+  let pathname = '/';
 
   const render = async (data: ExperienceItem[]): Promise<ComponentFixture<Experience>> => {
     collection = vi.fn(() => signal(data));
     await TestBed.configureTestingModule({
       imports: [Experience],
-      providers: [{ provide: ContentService, useValue: { collection } }],
+      providers: [
+        { provide: ContentService, useValue: { collection } },
+        { provide: PlatformLocation, useValue: { pathname } },
+      ],
     }).compileComponents();
     const fixture = TestBed.createComponent(Experience);
     await fixture.whenStable();
@@ -80,5 +85,19 @@ describe('Experience', () => {
     expect(element.textContent).toContain('Experience coming soon');
     expect(element.textContent).not.toContain('Platform Engineer');
     expect(element.querySelector('a[href="/experience"]')).toBeNull();
+  });
+
+  describe('in Spanish', () => {
+    beforeEach(() => (pathname = '/es'));
+    afterEach(() => (pathname = '/'));
+
+    it('translates its texts and links to the Spanish page (RF-131)', async () => {
+      const fixture = await render([{ ...items[0], lang: 'en' }]);
+      const element: HTMLElement = fixture.nativeElement;
+
+      expect(element.textContent).toContain('Trayectoria');
+      expect(element.querySelector('a[href="/es/experience"]')?.textContent).toContain('Ver más');
+      expect(element.querySelector('h3')?.closest('article')?.getAttribute('lang')).toBe('en');
+    });
   });
 });

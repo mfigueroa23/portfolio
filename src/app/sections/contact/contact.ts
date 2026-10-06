@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { Button } from '../../components/button/button';
+import { LanguageService } from '../../core/i18n/language.service';
 import { ContactInfo } from '../../core/interfaces/content';
 import { ContactService } from '../../core/services/contact.service';
 import { ContentService } from '../../core/services/content.service';
@@ -11,6 +12,8 @@ import { ContentService } from '../../core/services/content.service';
   templateUrl: './contact.html',
 })
 export class Contact {
+  protected readonly language = inject(LanguageService);
+  protected readonly m = this.language.m;
   private readonly contactService = inject(ContactService);
   public readonly contactInfo = inject(ContentService).collection<ContactInfo>('contact-info');
   public readonly name = signal('');
@@ -38,9 +41,7 @@ export class Contact {
     } catch (error) {
       this.status.set({
         type: 'error',
-        message:
-          (error instanceof Error && error.message) ||
-          'Failed to send message. Please try again later.',
+        message: (error instanceof Error && error.message) || this.m().forms.sendError,
       });
     } finally {
       this.isLoading.set(false);

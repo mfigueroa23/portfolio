@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { LanguageService } from '../../core/i18n/language.service';
 
 @Component({
   imports: [],
@@ -7,13 +8,17 @@ import { Component } from '@angular/core';
   templateUrl: './footer.html',
 })
 export class Footer {
+  protected readonly language = inject(LanguageService);
   public readonly currentYear = new Date().getFullYear();
-  public footerLinks: { href: string; label: string }[] = [
-    { href: '/#about', label: 'About' },
-    { href: '/#projects', label: 'Projects' },
-    { href: '/#experience', label: 'Experience' },
-    { href: '/#contact', label: 'Contact' },
-  ];
+  public footerLinks: { href: string; label: string }[] = (() => {
+    const { nav } = this.language.m();
+    return [
+      { href: '/#about', label: nav.about },
+      { href: '/#projects', label: nav.projects },
+      { href: '/#experience', label: nav.experience },
+      { href: '/#contact', label: nav.contact },
+    ].map((link) => ({ ...link, href: this.language.href(link.href) }));
+  })();
   public socialLinks: { icon: string; href: string; label: string }[] = [
     { icon: 'fa-brands fa-github', href: 'https://github.com/mfigueroa23', label: 'GitHub' },
     {

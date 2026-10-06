@@ -1,3 +1,4 @@
+import { PlatformLocation } from '@angular/common';
 import { TestBed } from '@angular/core/testing';
 import { Project } from '../../core/interfaces/content';
 import { ProjectCard } from './project-card';
@@ -37,5 +38,35 @@ describe('ProjectCard', () => {
     expect((await render()).querySelector('h3')?.textContent).toContain('Portfolio');
     TestBed.resetTestingModule();
     expect((await render(2)).querySelector('h2')?.textContent).toContain('Portfolio');
+  });
+});
+
+describe('ProjectCard in Spanish', () => {
+  const project: Project = {
+    id: 1,
+    slug: 'portfolio',
+    slugEs: 'portafolio',
+    title: 'Portfolio',
+    description: 'This site.',
+    image: '/p.webp',
+    tags: [],
+    link: null,
+    github: null,
+    publishedAt: '2026-10-01T12:00:00.000Z',
+    lang: 'en',
+  };
+
+  it('links to the Spanish URL and marks an English project (RF-152, RF-174)', async () => {
+    await TestBed.configureTestingModule({
+      imports: [ProjectCard],
+      providers: [{ provide: PlatformLocation, useValue: { pathname: '/es' } }],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(ProjectCard);
+    fixture.componentRef.setInput('project', project);
+    await fixture.whenStable();
+    const link = (fixture.nativeElement as HTMLElement).querySelector('a');
+
+    expect(link?.getAttribute('href')).toBe('/es/projects/portafolio');
+    expect(link?.getAttribute('lang')).toBe('en');
   });
 });

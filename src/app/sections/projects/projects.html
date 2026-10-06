@@ -8,17 +8,18 @@
     <article class="text-center mx-auto max-w-3xl mb-16">
       <span
         class="text-secondary-foreground text-sm font-medium tracking-wider uppercase animate-fade-in"
-        >Featured Work</span
+        >{{ m().projects.eyebrow }}</span
       >
       <h2
         class="text-4xl md:text-5xl font-bold mt-4 mb-6 animate-fade-in animation-delay-100 text-secondary-foreground"
       >
-        Projects that
-        <span class="font-serif italic font-normal text-white">make an impact.</span>
+        {{ m().projects.heading.lead }}
+        <span class="font-serif italic font-normal text-white">{{
+          m().projects.heading.accent
+        }}</span>
       </h2>
       <p class="text-muted-foreground animate-fade-in animation-delay-200">
-        A selection of my recent work, from web applications to the infrastructure that keeps them
-        running.
+        {{ m().projects.intro }}
       </p>
     </article>
 
@@ -37,10 +38,10 @@
       <!-- View More CTA -->
       <article class="text-center mt-12 animate-fade-in animation-delay-500">
         <a
-          href="/projects"
+          [href]="language.href('/projects')"
           class="inline-flex items-center justify-center gap-2 min-h-11 px-6 rounded-full border border-border text-foreground text-sm font-medium hover:border-primary hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
-          View more projects <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          {{ m().projects.viewMore }} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
         </a>
       </article>
     } @else {
@@ -53,16 +54,14 @@
         >
           <i class="fa-solid fa-code text-2xl text-primary"></i>
         </div>
-        <h3 class="text-xl font-semibold mb-2">Projects coming soon</h3>
-        <p class="text-sm text-muted-foreground">
-          I'm preparing this section. Meanwhile, take a look at my work on GitHub.
-        </p>
+        <h3 class="text-xl font-semibold mb-2">{{ m().projects.soon }}</h3>
+        <p class="text-sm text-muted-foreground">{{ m().projects.soonGithub }}</p>
       </article>
 
       <!-- GitHub CTA -->
       <article class="text-center mt-12 animate-fade-in animation-delay-500">
         <app-animated-button href="https://github.com/mfigueroa23"
-          >View All Projects <i class="fa-brands fa-github"></i
+          >{{ m().projects.viewAll }} <i class="fa-brands fa-github"></i
         ></app-animated-button>
       </article>
     }
