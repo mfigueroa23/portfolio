@@ -101,7 +101,8 @@ export interface Testimonial extends PositionedItem {
   quote: string;
   author: string;
   role: string;
-  avatar: string;
+  /** Photo URL; `null` shows the author's initials instead (RF-87, RF-91). */
+  avatar: string | null;
 }
 
 export interface Highlight extends PositionedItem {

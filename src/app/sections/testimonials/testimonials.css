@@ -1,0 +1,4 @@
+/* Long words wrap inside the card instead of scrolling it (RF-94). */
+.quote {
+  overflow-wrap: anywhere;
+}

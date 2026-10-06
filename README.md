@@ -26,6 +26,11 @@ I enjoy understanding the whole picture: how the code is written, how it's deplo
 - **LinkedIn:** [mfigueroa23](https://www.linkedin.com/in/mfigueroa23)
 - **Location:** Santiago, Chile
 
+## Forms
+
+- **Contact:** the contact section sends messages to the API (`POST /contact`).
+- **Testimonials:** once the home page is interactive, the testimonials section shows a "Leave a testimonial" button that opens a dialog with the testimonial form (name, role, email and testimonial). It posts to the API (`POST /testimonials`); a submitted testimonial stays hidden until the owner approves it in the panel. Testimonials without a photo show the author's initials.
+
 ## Deployment
 
 The site runs as one Kubernetes pod (`deployment/portfolio`, namespace `portfolio`) with two containers:
