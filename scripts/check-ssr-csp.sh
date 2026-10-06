@@ -12,7 +12,7 @@ DIST=dist/devsonic.cl
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 
-CSP_RENDER_PORT=${CSP_CHECK_PORT:-4100} node docker/render-ssr-pages.mjs "$DIST/server/server.mjs" "$work/ssr"
+CSP_RENDER_PORT=${CSP_CHECK_PORT:-} node docker/render-ssr-pages.mjs "$DIST/server/server.mjs" "$work/ssr"
 
 echo '__CSP_SCRIPT_HASHES__' >"$work/nginx.conf"
 perl docker/csp-hashes.pl "$DIST/browser" "$work/ssr" "$work/nginx.conf" >/dev/null
