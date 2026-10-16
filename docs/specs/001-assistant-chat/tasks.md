@@ -21,17 +21,17 @@ then implement.
   - Hecho cuando: §6 names `API_URL` and `AGENT_URL`, `AGENTS.md` mentions `AGENT_URL`, the
     change is approved, and `pnpm exec prettier --check docs AGENTS.md` is clean.
 
-- [ ] **T02 🌐 Enable CORS on the agent API (P1)**
+- [x] **T02 🌐 Enable CORS on the agent API (P1)**
   - Covers RF-27 and RF-31.
   - Depends on: —
   - Runs in parallel with everything else. It only blocks T18 and T21.
-  - Work:
-    - The agent API accepts `POST` with `Content-Type: application/json` from
-      `https://marco.figueroa-sanchez.com`.
-    - It accepts the same request from `http://localhost:4200`.
-  - Hecho cuando: for each of those two origins, a preflight `curl -X OPTIONS` to `/chat`, both
-    locally (`:8000`) and in production, sends `Origin` and `Access-Control-Request-Method: POST`
-    and gets a 2xx with `Access-Control-Allow-Origin` set to that origin.
+  - Work: the agent API (v3.3.0) already reads its allowed origins from the `cors_origins` table,
+    so no code changes. Register the origins as rows:
+    - `https://marco.figueroa-sanchez.com`, locally and in production.
+    - `http://localhost:4200`, locally only. The dev server does not call the production agent.
+  - Hecho cuando: a preflight `curl -X OPTIONS` to `/chat` with `Origin` and
+    `Access-Control-Request-Method: POST` gets a 200 with `Access-Control-Allow-Origin` set to
+    that origin, for both origins on `:8000` and for the site origin in production.
 
 ## Phase 1 — Configuration and infra
 
