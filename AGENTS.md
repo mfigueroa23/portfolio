@@ -2,18 +2,18 @@
 
 ## Project
 
-Marco Figueroa's personal portfolio (marco.figueroa-sanchez.com), built with Angular 22 standalone + Tailwind v4, in English and in Spanish under `/es`. The home is prerendered; `/projects*`, `/experience` and `/blog*` are rendered on demand by a Node server (`src/server.ts`). It runs on Kubernetes as one pod with nginx (target `static`) and the SSR sidecar (target `ssr`). Content and forms come from the API (`API_URL`, defaults to `https://api.figueroa-sanchez.com`).
+Marco Figueroa's personal portfolio (marco.figueroa-sanchez.com), built with Angular 22 standalone + Tailwind v4, in English and in Spanish under `/es`. The home is prerendered; `/projects*`, `/experience` and `/blog*` are rendered on demand by a Node server (`src/server.ts`). It runs on Kubernetes as one pod with nginx (target `static`) and the SSR sidecar (target `ssr`). Content and forms come from the API (`API_URL`, defaults to `https://api.figueroa-sanchez.com`); the floating assistant chat talks to the personal assistant API (`AGENT_URL`, defaults to `https://agent.figueroa-sanchez.com`, `http://localhost:8000` locally).
 
 ## Commands
 
 - Install: `pnpm install`
-- Development: `pnpm start` (reads `API_URL` from `.env`; copy `.env.example`)
+- Development: `pnpm start` (reads `API_URL` and `AGENT_URL` from `.env`; copy `.env.example`)
 - Tests: `pnpm test --watch=false`
 - Build (types and budgets): `pnpm build`
 - Local SSR server: `node dist/devsonic.cl/server/server.mjs` (port 4000)
 - CSP of the SSR routes (after `pnpm build`): `scripts/check-ssr-csp.sh`
 - Formatting: `pnpm exec prettier --check .` (`--write` to fix)
-- Images: `docker build --target static .` and `docker build --target ssr .` (`--build-arg API_URL=<url>`)
+- Images: `docker build --target static .` and `docker build --target ssr .` (`--build-arg API_URL=<url> --build-arg AGENT_URL=<url>`)
 
 ## Style and conventions
 

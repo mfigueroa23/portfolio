@@ -11,7 +11,7 @@ then implement.
 
 ## Phase 0 — Prerequisites
 
-- [ ] **T01 🔒 Amend the constitution and AGENTS.md (P2)**
+- [x] **T01 🔒 Amend the constitution and AGENTS.md (P2)**
   - Covers RF-30.
   - Depends on: —
   - Work:
