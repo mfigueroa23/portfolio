@@ -5,3 +5,9 @@
   </main>
   <app-footer />
 </section>
+
+<!-- Browser only and out of the initial bundle: no placeholder, so the prerendered and server
+     HTML stay as they are (Spec 001 RF-01, RF-02, plan D10). -->
+@defer (on idle) {
+  <app-assistant />
+}

@@ -183,7 +183,7 @@ https://agent.figueroa-sanchez.com`.
     - auto-scroll happens only near the bottom;
     - the texts follow `es`.
 
-- [ ] **T17 Mount on every page: `@defer (on idle)` in `app.html` (M10)**
+- [x] **T17 Mount on every page: `@defer (on idle)` in `app.html` (M10)**
   - Covers RF-01 and RF-02.
   - Depends on: T16
   - Hecho cuando:
