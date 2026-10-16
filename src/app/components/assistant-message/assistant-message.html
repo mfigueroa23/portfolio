@@ -1,0 +1,64 @@
+@if (user(); as user) {
+  <p
+    data-user
+    class="ml-auto max-w-[85%] rounded-2xl rounded-br-sm bg-primary px-3.5 py-2.5 text-[15px] leading-normal font-medium break-words whitespace-pre-wrap text-primary-foreground md:text-sm"
+  >
+    {{ user.text }}
+  </p>
+} @else if (reply()) {
+  <div class="flex items-start gap-2.5">
+    <span
+      class="grid size-7 shrink-0 place-items-center rounded-full bg-primary/15 text-xs text-primary"
+      aria-hidden="true"
+    >
+      <i class="fa-solid fa-wand-magic-sparkles"></i>
+    </span>
+    <div class="flex max-w-[85%] min-w-0 flex-col items-start gap-1">
+      <div
+        data-reply
+        class="rounded-2xl rounded-tl-sm border border-border bg-surface px-3.5 py-2.5 text-[15px] leading-relaxed break-words text-foreground/90 md:text-sm [&_a]:rounded-sm [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2 [&_a:focus-visible]:outline-2 [&_a:focus-visible]:outline-primary [&_code]:rounded [&_code]:bg-background [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-[0.9em] [&_li]:mt-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-background [&_pre]:p-3 [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_strong]:font-semibold [&_strong]:text-foreground [&_ul]:list-disc [&_ul]:pl-5 [&>*+*]:mt-2"
+        [innerHTML]="html()"
+      ></div>
+      @if (revealing()) {
+        <button
+          type="button"
+          data-skip
+          class="cursor-pointer rounded-sm px-0.5 py-1.5 text-xs text-primary underline underline-offset-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          (click)="skip()"
+        >
+          {{ t().showFull }}
+        </button>
+      }
+    </div>
+  </div>
+} @else if (error(); as error) {
+  <div class="flex items-start gap-2.5">
+    <span
+      class="grid size-7 shrink-0 place-items-center rounded-full bg-highlight/15 text-xs text-highlight"
+      aria-hidden="true"
+    >
+      <i class="fa-solid fa-circle-exclamation"></i>
+    </span>
+    <div
+      data-error
+      class="flex max-w-[85%] flex-col items-start gap-2 rounded-2xl rounded-tl-sm border border-highlight/40 bg-highlight/5 px-3.5 py-2.5"
+    >
+      <span class="text-[11px] font-semibold tracking-wide text-highlight uppercase">{{
+        error.label
+      }}</span>
+      <p class="text-[15px] leading-normal break-words text-foreground/90 md:text-sm">
+        {{ error.text }}
+      </p>
+      <button
+        type="button"
+        data-retry
+        [disabled]="pending()"
+        class="flex cursor-pointer items-center gap-1.5 rounded-full border border-highlight/50 px-3 py-1.5 text-xs font-semibold text-highlight focus:outline-none focus-visible:ring-2 focus-visible:ring-highlight disabled:cursor-not-allowed disabled:opacity-40"
+        (click)="retry.emit(error.id)"
+      >
+        <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
+        {{ t().retry }}
+      </button>
+    </div>
+  </div>
+}

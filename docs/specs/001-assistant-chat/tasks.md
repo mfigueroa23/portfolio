@@ -157,7 +157,7 @@ https://agent.figueroa-sanchez.com`.
     Send is disabled when the text is empty, over the limit, or while a reply is pending. The
     limit text shows when the text is over the limit.
 
-- [ ] **T15 Message bubble: `components/assistant-message/` (M9)**
+- [x] **T15 Message bubble: `components/assistant-message/` (M9)**
   - Covers RF-14–RF-17 and RF-26–RF-29.
   - Depends on: T09, T10, T13
   - Hecho cuando: `assistant-message.spec.ts` passes. It checks that:
