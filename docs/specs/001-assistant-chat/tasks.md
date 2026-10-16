@@ -150,7 +150,7 @@ https://agent.figueroa-sanchez.com`.
   - Hecho cuando: both dictionaries have the same `assistant` keys, and `pnpm build` passes.
     Removing a key from `es` must make the build fail.
 
-- [ ] **T14 Composer: `components/assistant-composer/` (M9)**
+- [x] **T14 Composer: `components/assistant-composer/` (M9)**
   - Covers RF-10–RF-13.
   - Depends on: T08, T13
   - Hecho cuando: `assistant-composer.spec.ts` passes. Enter submits and Shift+Enter does not.
