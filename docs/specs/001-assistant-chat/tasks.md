@@ -69,7 +69,7 @@ then implement.
 https://agent.figueroa-sanchez.com`.
     - `--build-arg AGENT_URL=javascript:alert(1)` fails the build with `invalid AGENT_URL`.
 
-- [ ] **T06 🔒 Release workflow (M2, P3)**
+- [x] **T06 🔒 Release workflow (M2, P3)**
   - Covers RF-30 and RF-31.
   - Depends on: T04, T05
   - Work: `release.yaml` passes `AGENT_URL` wherever it passes `API_URL`: the build step and
