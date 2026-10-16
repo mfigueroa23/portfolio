@@ -209,6 +209,45 @@ export const en = {
     title: 'Marco Figueroa — Blog',
     description: 'Write-ups on building, deploying and running software.',
   },
+  /** Floating assistant chat (Spec 001 RF-32). */
+  assistant: {
+    open: "Open Marco's assistant",
+    hide: "Close Marco's assistant",
+    title: "Marco's assistant",
+    subtitle: "AI agent · Ask about Marco's work",
+    newChat: 'New conversation',
+    close: 'Close assistant',
+    greeting: "Hi! I'm Marco's assistant.",
+    intro: 'Ask me about his experience, projects or the technologies he works with.',
+    tryAsking: 'Try asking',
+    suggestions: [
+      'What does Marco work on?',
+      'Which technologies does he use?',
+      'Is he available for work?',
+    ],
+    inputLabel: 'Message for the assistant',
+    placeholder: "Ask about Marco's work...",
+    send: 'Send message',
+    hint: 'Enter to send · Shift+Enter for a new line',
+    counter: (length: number, max: number) => `${length} / ${max}`,
+    tooLong: (max: number) => `Messages can be up to ${max} characters.`,
+    thinking: 'The assistant is thinking',
+    showFull: 'Show full answer',
+    retry: 'Retry',
+    /** Shown instead of the agent's text for failures without one (RF-27, RF-28, plan D9). */
+    errors: {
+      generic: "We couldn't reach the assistant. Please try again.",
+      timeout: 'The assistant took too long to answer. Please try again.',
+      interrupted:
+        "This message didn't get an answer because the page changed. You can send it again.",
+    },
+    errorLabels: {
+      api: 'Agent message',
+      generic: 'Connection problem',
+      timeout: 'No answer',
+      interrupted: 'Interrupted',
+    },
+  },
 };
 
 export type Messages = typeof en;

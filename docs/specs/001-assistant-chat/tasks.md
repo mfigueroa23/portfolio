@@ -141,7 +141,7 @@ https://agent.figueroa-sanchez.com`.
 
 ## Phase 4 — Texts and UI
 
-- [ ] **T13 i18n texts: `assistant` block in `messages.en.ts` and `messages.es.ts` (M11)**
+- [x] **T13 i18n texts: `assistant` block in `messages.en.ts` and `messages.es.ts` (M11)**
   - Covers RF-08, RF-27, RF-28 and RF-32.
   - Depends on: —
   - Work: add the launcher label, title, placeholder, send, "New conversation", close, "Show
