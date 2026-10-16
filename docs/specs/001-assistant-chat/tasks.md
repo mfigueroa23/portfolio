@@ -42,15 +42,19 @@ then implement.
     production, trimmed spaces and trailing slashes, and production being used when there is no
     define.
 
-- [ ] **T04 🔒 Build define and env example (M2)**
+- [x] **T04 🔒 Build define and env example (M2)**
   - Covers RF-30.
   - Depends on: T03
   - Work:
     - `scripts/ng.mjs` passes `NG_AGENT_URL` when `AGENT_URL` is set.
     - `.env.example` adds `AGENT_URL=http://localhost:8000`.
-  - Hecho cuando: two builds give the expected URL in `dist/devsonic.cl/browser`:
-    - `AGENT_URL=http://localhost:8000 pnpm build`, then `grep -r "localhost:8000"`, finds it.
-    - `pnpm build` without the variable, then `grep -r "agent.figueroa-sanchez.com"`, finds it.
+  - Hecho cuando:
+    - running `scripts/ng.mjs` against a stubbed Angular CLI shows that it passes
+      `--define NG_AGENT_URL="…"` when `AGENT_URL` is set (from the environment or `.env`, with the
+      environment winning), passes nothing when it is unset or blank, and still passes `NG_API_URL`;
+    - `AGENT_URL=http://localhost:8000 pnpm build` succeeds.
+  - Note: nothing imports `AGENT_URL` until T11, so the build drops it and the URL cannot be found
+    in `dist` yet. That check moved to T17.
 
 - [ ] **T05 🔒 CSP origin in nginx and Docker (M2)**
   - Covers RF-31.
@@ -187,7 +191,10 @@ https://agent.figueroa-sanchez.com`.
     - `grep -L app-assistant dist/devsonic.cl/browser/index.html
 dist/devsonic.cl/browser/es/index.html` lists both files;
     - `scripts/check-ssr-csp.sh` passes;
-    - `app.spec.ts` passes.
+    - `app.spec.ts` passes;
+    - after `AGENT_URL=http://localhost:8000 pnpm build`, `grep -r "localhost:8000"
+dist/devsonic.cl/browser` finds it, and after a plain `pnpm build`,
+      `grep -r "agent.figueroa-sanchez.com" dist/devsonic.cl/browser` finds it (moved from T04).
 
 ## Phase 5 — Verification and release
 
