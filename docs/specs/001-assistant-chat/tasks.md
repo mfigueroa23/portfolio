@@ -203,34 +203,45 @@ dist/devsonic.cl/browser` finds it, and after a plain `pnpm build`,
   - Depends on: T02 (local CORS), T04, T17
   - Setup: `.env` with `AGENT_URL=http://localhost:8000`, then `pnpm start`.
   - Hecho cuando: every item below is checked.
-    - [ ] Send a message: the reply reveals word by word, and "Show full answer" completes it
+  - Run on 2026-10-16 against the local agent through a headless Chromium driven over CDP (20/20
+    checks). The agent's answers to a suggested question were real; the other replies, the 503,
+    the offline state and the 30 s hold were produced by intercepting `/chat`, which runs the same
+    client code. Two items need a real device and are still open.
+    - [x] Send a message: the reply reveals word by word, and "Show full answer" completes it
           (RF-10, RF-14, RF-15).
-    - [ ] With reduced motion on in the OS, the reply appears in full (RF-16).
-    - [ ] A reply with Markdown renders: lists, code and an external link opening in a new tab
+    - [x] With reduced motion on in the OS, the reply appears in full (RF-16). Emulated with
+          `prefers-reduced-motion: reduce`.
+    - [x] A reply with Markdown renders: lists, code and an external link opening in a new tab
           (RF-17).
-    - [ ] Scrolled up during a reveal, the thread is not pulled down. At the bottom, it follows
-          (RF-18).
-    - [ ] A screen reader (VoiceOver) announces the reply once (RF-19).
-    - [ ] 503 with the agent's LLM backend stopped shows the API `respuesta` (RF-26).
-    - [ ] Offline in DevTools shows the generic error, and Retry works (RF-27, RF-29).
-    - [ ] A reply delayed past 30 s with throttling shows the timeout text (RF-28).
-    - [ ] Navigate, reload and switch EN↔ES: the history and `chat_id` are kept (RF-21).
-    - [ ] Navigate during a pending reply: it is restored with "interrupted" and Retry (RF-21,
+    - [x] Scrolled up during a reveal, the thread is not pulled down. At the bottom, it follows
+          (RF-18). The bottom case in the browser; the scrolled-up case in `assistant.spec.ts`.
+    - [ ] A screen reader (VoiceOver) announces the reply once (RF-19). The live region gets the
+          full reply once as plain text; not yet heard with VoiceOver.
+    - [x] 503 with the agent's LLM backend stopped shows the API `respuesta` (RF-26). Also seen
+          with the real agent while its LLM backend was failing (500).
+    - [x] Offline in DevTools shows the generic error, and Retry works (RF-27, RF-29).
+    - [x] A reply delayed past 30 s with throttling shows the timeout text (RF-28). Shown after
+          30.0–30.1 s.
+    - [x] Navigate, reload and switch EN↔ES: the history and `chat_id` are kept (RF-21).
+    - [x] Navigate during a pending reply: it is restored with "interrupted" and Retry (RF-21,
           RF-29).
-    - [ ] Close the tab and reopen the site: the conversation is empty (RF-22).
-    - [ ] "New conversation" clears the thread and starts a new `chat_id`, visible in the
+    - [x] Close the tab and reopen the site: the conversation is empty (RF-22). A new browser
+          context.
+    - [x] "New conversation" clears the thread and starts a new `chat_id`, visible in the
           request payload (RF-20, RF-23).
-    - [ ] Close the panel during a pending reply and reopen it: the reply is there in full
+    - [x] Close the panel during a pending reply and reopen it: the reply is there in full
           (RF-25).
-    - [ ] At 1280 px, the panel floats and the page stays visible and usable (RF-05).
+    - [x] At 1280 px, the panel floats and the page stays visible and usable (RF-05). 384 × 576
+          px, 24 px from the right edge.
     - [ ] At 375 px, the panel is full screen, and the composer stays visible with the keyboard
-          open (RF-06).
-    - [ ] Keyboard only: Tab reaches every control with a visible focus, and Escape closes the
-          panel and returns focus (RF-04, RF-07).
-    - [ ] Empty conversation shows the greeting and suggestions in EN and ES, and a suggestion
+          open (RF-06). Full screen with the composer in view and the launcher hidden; the
+          on-screen keyboard cannot be emulated headless.
+    - [x] Keyboard only: Tab reaches every control with a visible focus, and Escape closes the
+          panel and returns focus (RF-04, RF-07). Opened with Enter from the launcher.
+    - [x] Empty conversation shows the greeting and suggestions in EN and ES, and a suggestion
           sends (RF-08, RF-09, RF-32).
 
-- [ ] **T19 Quality gate**
+- [x] **T19 Quality gate**
   - Covers all RFs.
   - Depends on: T06, T17, T18
   - Hecho cuando:
@@ -238,7 +249,7 @@ dist/devsonic.cl/browser` finds it, and after a plain `pnpm build`,
       `scripts/check-ssr-csp.sh` exit 0;
     - `pnpm exec prettier --check` is clean on every touched file.
 
-- [ ] **T20 Version bump**
+- [x] **T20 Version bump**
   - Covers: —
   - Depends on: T19
   - Hecho cuando: `package.json` has `"version": "4.1.0"`, committed as
