@@ -168,7 +168,7 @@ https://agent.figueroa-sanchez.com`.
       `interrupted`;
     - Retry emits, and is disabled while a reply is pending.
 
-- [ ] **T16 Launcher and panel: `components/assistant/` (M9)**
+- [x] **T16 Launcher and panel: `components/assistant/` (M9)**
   - Covers RF-01, RF-03–RF-09, RF-13, RF-18, RF-19 and RF-23.
   - Depends on: T12, T14, T15
   - Hecho cuando: `assistant.spec.ts` passes. It checks that:

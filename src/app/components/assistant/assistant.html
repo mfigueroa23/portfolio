@@ -1,0 +1,140 @@
+@if (conversation.open()) {
+  <section
+    id="assistant-panel"
+    role="dialog"
+    aria-labelledby="assistant-title"
+    class="fixed inset-0 z-[60] flex h-dvh flex-col overflow-hidden bg-card text-foreground shadow-2xl md:inset-auto md:right-6 md:bottom-24 md:h-[min(36rem,calc(100dvh-8rem))] md:w-96 md:rounded-2xl md:border md:border-border"
+    (keydown.escape)="close()"
+  >
+    <header class="flex items-center gap-3 border-b border-border bg-surface py-3 pr-2 pl-4">
+      <span
+        class="grid size-9 shrink-0 place-items-center rounded-full border border-primary/40 bg-primary/15 text-sm text-primary"
+        aria-hidden="true"
+      >
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+      </span>
+      <div class="min-w-0 flex-1">
+        <h2 id="assistant-title" class="text-[15px] font-semibold">{{ t().title }}</h2>
+        <p class="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <span class="size-1.5 shrink-0 rounded-full bg-primary" aria-hidden="true"></span>
+          {{ t().subtitle }}
+        </p>
+      </div>
+      <button
+        type="button"
+        data-new-chat
+        [attr.aria-label]="t().newChat"
+        [title]="t().newChat"
+        class="grid size-11 cursor-pointer place-items-center rounded-xl text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary md:size-10"
+        (click)="newConversation()"
+      >
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+      </button>
+      <button
+        type="button"
+        data-close
+        [attr.aria-label]="t().close"
+        [title]="t().close"
+        class="grid size-11 cursor-pointer place-items-center rounded-xl text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary md:size-10"
+        (click)="close()"
+      >
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+      </button>
+    </header>
+
+    <div
+      #thread
+      data-thread
+      class="flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto overscroll-contain p-4"
+      (scroll)="onScroll()"
+    >
+      @if (empty()) {
+        <div class="flex items-start gap-2.5">
+          <span
+            class="grid size-7 shrink-0 place-items-center rounded-full bg-primary/15 text-xs text-primary"
+            aria-hidden="true"
+          >
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+          </span>
+          <div
+            class="rounded-2xl rounded-tl-sm border border-border bg-surface px-3.5 py-3 text-[15px] leading-relaxed md:text-sm"
+          >
+            <p class="font-semibold">{{ t().greeting }}</p>
+            <p class="mt-1 text-foreground/80">{{ t().intro }}</p>
+          </div>
+        </div>
+        <div class="flex flex-col gap-2 pl-9.5">
+          <p class="text-xs text-muted-foreground">{{ t().tryAsking }}</p>
+          @for (suggestion of t().suggestions; track suggestion) {
+            <button
+              type="button"
+              data-suggestion
+              class="cursor-pointer rounded-xl border border-border px-3 py-2.5 text-left text-sm text-foreground/80 transition-colors hover:border-primary hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              (click)="send(suggestion)"
+            >
+              {{ suggestion }}
+            </button>
+          }
+        </div>
+      }
+
+      @for (turn of conversation.turns(); track turn.id) {
+        <app-assistant-message
+          [turn]="turn"
+          [pending]="conversation.pending()"
+          (retry)="conversation.retry($event)"
+          (revealed)="onRevealed($event)"
+        />
+      }
+
+      @if (conversation.pending()) {
+        <div class="flex items-center gap-2.5">
+          <span
+            class="grid size-7 shrink-0 place-items-center rounded-full bg-primary/15 text-xs text-primary"
+            aria-hidden="true"
+          >
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+          </span>
+          <div
+            role="status"
+            [attr.aria-label]="t().thinking"
+            class="flex items-center gap-1.5 rounded-2xl rounded-tl-sm border border-border bg-surface px-4 py-3.5"
+          >
+            <span
+              class="size-1.5 animate-bounce rounded-full bg-primary motion-reduce:animate-none"
+            ></span>
+            <span
+              class="size-1.5 animate-bounce rounded-full bg-primary [animation-delay:150ms] motion-reduce:animate-none"
+            ></span>
+            <span
+              class="size-1.5 animate-bounce rounded-full bg-primary [animation-delay:300ms] motion-reduce:animate-none"
+            ></span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <p class="sr-only" aria-live="polite">{{ announcement() }}</p>
+
+    <app-assistant-composer [pending]="conversation.pending()" (submitted)="send($event)" />
+  </section>
+}
+
+<button
+  #launcher
+  type="button"
+  data-launcher
+  [attr.aria-label]="conversation.open() ? t().hide : t().open"
+  [attr.aria-expanded]="conversation.open()"
+  [attr.aria-controls]="conversation.open() ? 'assistant-panel' : null"
+  [class]="conversation.open() ? 'max-md:hidden' : ''"
+  class="fixed right-4 bottom-4 z-[60] grid size-14 cursor-pointer place-items-center rounded-full bg-primary text-xl text-primary-foreground shadow-[0_0_0_6px_rgb(32_178_166/0.14),0_12px_32px_rgb(0_0_0/0.5)] transition-transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none md:right-6 md:bottom-6"
+  (click)="toggle()"
+>
+  <i
+    class="fa-solid"
+    [class.fa-comment-dots]="!conversation.open()"
+    [class.fa-chevron-down]="conversation.open()"
+    aria-hidden="true"
+  ></i>
+</button>
