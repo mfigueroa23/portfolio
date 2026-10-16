@@ -80,7 +80,7 @@ https://agent.figueroa-sanchez.com`.
 
 ## Phase 2 — Model and pure utils
 
-- [ ] **T07 Data model: `core/interfaces/assistant.ts` (M3)**
+- [x] **T07 Data model: `core/interfaces/assistant.ts` (M3)**
   - Covers RF-10, RF-20 and RF-26–RF-29.
   - Depends on: —
   - Work: add `AgentChatRequest`, `AgentChatResponse`, `AgentResult`, `UserTurn`, `ReplyTurn`,
