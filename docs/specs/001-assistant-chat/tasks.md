@@ -88,13 +88,13 @@ https://agent.figueroa-sanchez.com`.
   - Hecho cuando: every type and field in the plan's data model table exists with the same name,
     and `pnpm build` passes.
 
-- [ ] **T08 Message validation: `core/utils/chat-validation.ts` (M6)**
+- [x] **T08 Message validation: `core/utils/chat-validation.ts` (M6)**
   - Covers RF-11 and RF-12.
   - Depends on: —
   - Hecho cuando: `chat-validation.spec.ts` passes. Empty and whitespace-only text is blocked,
     1 and 2000 characters are allowed, 2001 is blocked, and length is measured after trimming.
 
-- [ ] **T09 Safe Markdown subset: `core/utils/chat-markdown.ts` (M7)**
+- [x] **T09 Safe Markdown subset: `core/utils/chat-markdown.ts` (M7)**
   - Covers RF-17.
   - Depends on: —
   - Hecho cuando: `chat-markdown.spec.ts` passes. It checks that:
@@ -105,7 +105,7 @@ https://agent.figueroa-sanchez.com`.
       sanitizer;
     - unclosed markers stay literal.
 
-- [ ] **T10 Word reveal: `core/utils/word-reveal.ts` (M8)**
+- [x] **T10 Word reveal: `core/utils/word-reveal.ts` (M8)**
   - Covers RF-14.
   - Depends on: —
   - Hecho cuando: `word-reveal.spec.ts` passes. Joining the tokens rebuilds the source, every
