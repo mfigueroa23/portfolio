@@ -35,7 +35,7 @@ then implement.
 
 ## Phase 1 — Configuration and infra
 
-- [ ] **T03 Agent URL config: `core/config/agent.ts` (M1)**
+- [x] **T03 Agent URL config: `core/config/agent.ts` (M1)**
   - Covers RF-30.
   - Depends on: T01
   - Hecho cuando: `agent.spec.ts` passes. It covers unset and blank values falling back to
