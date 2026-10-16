@@ -123,7 +123,7 @@ https://agent.figueroa-sanchez.com`.
     - 503 with an empty body, 422, 404, status 0 and a 200 without `respuesta` give `generic`;
     - 30 s with fake timers gives `timeout`, and the request is reported cancelled.
 
-- [ ] **T12 Conversation store: `core/services/assistant-conversation.service.ts` and
+- [x] **T12 Conversation store: `core/services/assistant-conversation.service.ts` and
       `ASSISTANT_STORAGE` (M5)**
   - Covers RF-13 and RF-20–RF-25, RF-29.
   - Depends on: T07, T08, T11
