@@ -56,7 +56,7 @@ then implement.
   - Note: nothing imports `AGENT_URL` until T11, so the build drops it and the URL cannot be found
     in `dist` yet. That check moved to T17.
 
-- [ ] **T05 🔒 CSP origin in nginx and Docker (M2)**
+- [x] **T05 🔒 CSP origin in nginx and Docker (M2)**
   - Covers RF-31.
   - Depends on: T01
   - Work:

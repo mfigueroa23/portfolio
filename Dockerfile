@@ -1,6 +1,6 @@
 # Stage 0: build the app. It runs on the build platform (--platform=$BUILDPLATFORM): the output
 # is JavaScript and HTML, the same for every target platform, so it is built once and natively.
-# An empty API_URL (unset CI secret) falls back to production (scripts/ng.mjs).
+# An empty API_URL or AGENT_URL (unset CI secret) falls back to production (scripts/ng.mjs).
 FROM --platform=$BUILDPLATFORM node:26-alpine AS build
 RUN npm install -g pnpm@12.6.0
 WORKDIR /app
@@ -8,6 +8,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 COPY . .
 ARG API_URL=
+ARG AGENT_URL=
 RUN pnpm build
 
 # Stage 1: render the server-rendered routes once with the built SSR server, so their inline
@@ -21,17 +22,21 @@ COPY --from=build /app/dist/devsonic.cl/browser /app/browser
 COPY docker/render-ssr-pages.mjs /app/
 RUN node /app/render-ssr-pages.mjs /app/server/server.mjs /pages
 
-# Stage 2: set the API origin in the CSP, compute hashes for inline scripts and lock down
-# file permissions (platform-independent files, so also on the build platform). API_URL is the
-# one the build stage used; an empty value (unset CI secret) falls back to production.
+# Stage 2: set the API and assistant origins in the CSP, compute hashes for inline scripts and
+# lock down file permissions (platform-independent files, so also on the build platform).
+# API_URL and AGENT_URL are the ones the build stage used; an empty value (unset CI secret)
+# falls back to production.
 FROM --platform=$BUILDPLATFORM perl:5-slim AS csp
 ARG API_URL=https://api.figueroa-sanchez.com
+ARG AGENT_URL=https://agent.figueroa-sanchez.com
 COPY --from=build /app/dist/devsonic.cl/browser /site
 COPY nginx.conf docker/csp-hashes.pl /work/
 COPY --from=ssr-pages /pages /ssr-pages
-# Only scheme://host[:port] reaches nginx.conf, so the value can't inject CSP directives.
-RUN API_ORIGIN=$(perl -e '$ARGV[0] =~ m{^(https?://[A-Za-z0-9.-]+(?::[0-9]+)?)(?:/.*)?$} or die "invalid API_URL\n"; print $1' "${API_URL:-https://api.figueroa-sanchez.com}") \
- && sed -i "s|__API_ORIGIN__|$API_ORIGIN|" /work/nginx.conf \
+# Only scheme://host[:port] reaches nginx.conf, so the values can't inject CSP directives.
+RUN origin() { perl -e '$ARGV[0] =~ m{^(https?://[A-Za-z0-9.-]+(?::[0-9]+)?)(?:/.*)?$} or die "invalid $ARGV[1]\n"; print $1' "$2" "$1"; } \
+ && API_ORIGIN=$(origin API_URL "${API_URL:-https://api.figueroa-sanchez.com}") \
+ && AGENT_ORIGIN=$(origin AGENT_URL "${AGENT_URL:-https://agent.figueroa-sanchez.com}") \
+ && sed -i -e "s|__API_ORIGIN__|$API_ORIGIN|" -e "s|__AGENT_ORIGIN__|$AGENT_ORIGIN|" /work/nginx.conf \
  && perl /work/csp-hashes.pl /site /ssr-pages /work/nginx.conf \
  && find /site -type d -exec chmod 0555 {} + \
  && find /site -type f -exec chmod 0444 {} +
