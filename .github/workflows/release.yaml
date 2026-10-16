@@ -38,6 +38,7 @@ jobs:
         run: 'pnpm run build'
         env:
           API_URL: ${{ secrets.API_URL }}
+          AGENT_URL: ${{ vars.AGENT_URL }}
 
       - name: 'Check SSR CSP Hashes'
         run: 'scripts/check-ssr-csp.sh'
@@ -81,6 +82,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           build-args: |
             API_URL=${{ secrets.API_URL }}
+            AGENT_URL=${{ vars.AGENT_URL }}
           push: true
           tags: |
             ${{ vars.DOCKERHUB_USERNAME }}/portfolio:latest
@@ -96,6 +98,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           build-args: |
             API_URL=${{ secrets.API_URL }}
+            AGENT_URL=${{ vars.AGENT_URL }}
           push: true
           tags: |
             ${{ vars.DOCKERHUB_USERNAME }}/portfolio-ssr:latest
