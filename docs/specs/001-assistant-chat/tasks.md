@@ -113,7 +113,7 @@ https://agent.figueroa-sanchez.com`.
 
 ## Phase 3 — Services
 
-- [ ] **T11 HTTP service: `core/services/assistant.service.ts` (M4)**
+- [x] **T11 HTTP service: `core/services/assistant.service.ts` (M4)**
   - Covers RF-10 and RF-26–RF-28.
   - Depends on: T03, T07
   - Hecho cuando: `assistant.service.spec.ts` passes with `HttpTestingController`:
