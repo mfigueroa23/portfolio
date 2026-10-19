@@ -4,4 +4,5 @@
 export type ResumeFailure = 'not-found' | 'generic' | 'timeout';
 
 /** Outcome of one load; the service never throws (plan D4). */
-export type ResumeResult = { ok: true; data: Uint8Array } | { ok: false; reason: ResumeFailure };
+export type ResumeResult =
+  { ok: true; data: Uint8Array<ArrayBuffer> } | { ok: false; reason: ResumeFailure };

@@ -15,7 +15,7 @@ const GENERIC: ResumeResult = { ok: false, reason: 'generic' };
 export class ResumeService {
   private readonly http = inject(HttpClient);
   /** Bytes of each language's last successful load (RF-05, plan D6). */
-  private readonly loaded = new Map<Lang, Uint8Array>();
+  private readonly loaded = new Map<Lang, Uint8Array<ArrayBuffer>>();
 
   /**
    * The resume in `lang`; Spanish may come back as the English PDF (api fallback, RF-13).

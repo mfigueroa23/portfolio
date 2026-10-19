@@ -37,13 +37,14 @@
 
 ## Phase 2 — Preview dialog
 
-- [ ] **T04 — Preview component: `components/resume-preview/`**
+- [x] **T04 — Preview component: `components/resume-preview/`**
   - **RF:** RF-02–RF-08, RF-10, RF-11, RF-13, RF-15–RF-18, RF-20–RF-25, RF-27–RF-31
   - **Depends on:** T01, T02, T03
   - **Scope:**
     - `resume-preview.ts` / `.html` / `.spec.ts`, selector `app-resume-preview`: a native `<dialog>` with the `TestimonialDialog` pattern (D1); `loading | ready | error` states; one canvas per page labelled with `page(n, total)`; `ResizeObserver` re-render on width change only (D10); `download()` through a `Blob` URL with `fileName` (D11); `retry()`; `AbortController` + generation counter on close (D5); sticky header, full screen under `md`, centered `max-w-3xl` from `md`, `overscroll-behavior: contain` (D12). No component CSS file unless needed (4 kB budget).
     - The spec reuses the `showModal()`/`close()` emulation of `testimonial-dialog.spec.ts`, and fakes `ResumeService`, `PdfRendererService` and `ResizeObserver`.
   - **Done when:** U-RP-1…U-RP-16 pass and `pnpm build` shows no `anyComponentStyle` warning, lists pdf.js only as a lazy chunk and writes a `worker-*.js` file to `dist/devsonic.cl/browser`, and the server build does not fail on the worker (moved from T01).
+  - **Note:** the dialog is not mounted until T05, so the build still drops it; the lazy chunk and worker check moved to T05.
 
 ## Phase 3 — Integration with the site
 
@@ -56,7 +57,7 @@
     - Remove `hero.downloadResume` from both dictionaries.
     - `src/styles.css`: `html:has(dialog.resume-preview[open]) { overflow: hidden; }` (D12).
     - `hero.spec.ts` and, if it has a spec, `animated-button.spec.ts`.
-  - **Done when:** U-H-1 and U-H-2 pass, and `grep -rn "downloadResume\|Marco-Figueroa-Resume.pdf" src` finds nothing.
+  - **Done when:** U-H-1 and U-H-2 pass, `grep -rn "downloadResume\|Marco-Figueroa-Resume.pdf" src` finds nothing, and `pnpm build` lists pdf.js only as a lazy chunk, writes a `worker-*.js` file to `dist/devsonic.cl/browser` and the server build does not fail on the worker (moved from T04).
 
 - [ ] **T06 — Remove the static resume**
   - **RF:** RF-32
