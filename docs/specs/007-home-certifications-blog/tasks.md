@@ -28,13 +28,13 @@
 
 ## Phase 2 — Cards
 
-- [ ] **T04 — `CertificationCard` and `/experience`**
+- [x] **T04 — `CertificationCard` and `/experience`**
   - **RF:** RF-04–RF-07, RF-20
   - **Depends on:** T01
   - **Scope:** Create `components/certification-card/` (`.ts`, `.html`, `.spec.ts`). The card owns its date formatting and the `'UTC'` → browser time zone signal (D3), and reads its labels from `m().pages.experience` (D4). Unless T01 decided otherwise, switch `experience-page.ts`/`.html` to the card: the list keeps its ascending `position` order, and the `CertificationCard` interface and the `timeZone` signal leave the page.
   - **Done when:** U-CC-1–U-CC-6 pass, and the existing `experience-page.spec.ts` tests (U-EP) pass unchanged.
 
-- [ ] **T05 — `PostCard`**
+- [x] **T05 — `PostCard`**
   - **RF:** RF-12–RF-14, RF-20
   - **Depends on:** — (can run in parallel with T01–T03)
   - **Scope:** Create `components/post-card/` (`.ts`, `.html`, `.spec.ts`), a vertical card with the cover on top and a stretched title link (D7). Post URLs are built in the page language and use `slugEs` under `/es`, like `ProjectCard.href`. Tag links go through `tagKey` from `core/utils/text.ts`. The date uses `app-local-date`, and the reading time uses `pages.readingTime`.
