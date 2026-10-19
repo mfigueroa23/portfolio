@@ -66,6 +66,7 @@ export class ResumePreview {
   private data?: Uint8Array<ArrayBuffer>;
   private resizeObserver?: ResizeObserver;
   private renderedWidth = 0;
+  private frame = 0;
 
   /** Opens the dialog and loads the resume; focus returns to `trigger` when it closes. */
   public open(trigger: HTMLElement | null): void {
@@ -136,21 +137,25 @@ export class ResumePreview {
   }
 
   // The observer reports the first size as soon as it observes, so it also does the first
-  // render; afterwards only a new width draws again (RF-08, RF-10, plan D10).
+  // render; afterwards only a new width draws again (RF-08, RF-10, plan D10). Drawing waits for
+  // the next frame: resizing the canvases while the observer delivers would raise a
+  // "ResizeObserver loop" error, and several sizes in one frame draw once.
   private observeWidth(generation: number): void {
     const pages = this.pages()?.nativeElement;
     if (!pages || generation !== this.generation) return;
     this.resizeObserver = new ResizeObserver((entries) => {
       const width = Math.floor(entries[0]?.contentRect.width ?? 0);
-      if (width > 0 && width !== this.renderedWidth) void this.renderPages(generation, width);
+      if (width <= 0 || width === this.renderedWidth) return;
+      this.renderedWidth = width;
+      cancelAnimationFrame(this.frame);
+      this.frame = requestAnimationFrame(() => void this.renderPages(generation, width));
     });
     this.resizeObserver.observe(pages);
   }
 
   private async renderPages(generation: number, width: number): Promise<void> {
     const pdf = this.pdf;
-    if (!pdf) return;
-    this.renderedWidth = width;
+    if (!pdf || generation !== this.generation) return;
     try {
       await Promise.all(
         this.canvases().map((canvas, index) => pdf.render(index + 1, canvas.nativeElement, width)),
@@ -170,6 +175,7 @@ export class ResumePreview {
     this.controller = undefined;
     this.resizeObserver?.disconnect();
     this.resizeObserver = undefined;
+    cancelAnimationFrame(this.frame);
     this.pdf?.destroy();
     this.pdf = undefined;
     this.data = undefined;

@@ -70,7 +70,7 @@ describe('ResumePreview', () => {
   const canvases = (): HTMLCanvasElement[] => Array.from(element.querySelectorAll('canvas'));
   const settle = async (): Promise<void> => {
     await fixture.whenStable();
-    await new Promise((done) => setTimeout(done));
+    await new Promise((done) => requestAnimationFrame(() => setTimeout(done)));
     await fixture.whenStable();
   };
   const open = async (): Promise<void> => {
@@ -208,6 +208,26 @@ describe('ResumePreview', () => {
       await settle();
       expect(pdf.render).toHaveBeenCalledTimes(3);
       expect(pdf.render.mock.calls.every(([, , width]) => width === 340)).toBe(true);
+    });
+
+    it('draws in the next frame, not inside the observer callback (RF-10)', async () => {
+      await open();
+      FakeResizeObserver.resize(600);
+
+      // Resizing canvases while the observer delivers would raise a "ResizeObserver loop" error.
+      expect(pdf.render).not.toHaveBeenCalled();
+      await settle();
+      expect(pdf.render).toHaveBeenCalledTimes(3);
+    });
+
+    it('draws once for several sizes reported before the next frame (RF-10)', async () => {
+      await open();
+      FakeResizeObserver.resize(500);
+      FakeResizeObserver.resize(600);
+      await settle();
+
+      expect(pdf.render).toHaveBeenCalledTimes(3);
+      expect(pdf.render.mock.calls.every(([, , width]) => width === 600)).toBe(true);
     });
 
     it('saves the loaded bytes under the English file name and stays open (U-RP-7, RF-15–RF-17)', async () => {
