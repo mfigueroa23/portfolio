@@ -42,7 +42,7 @@
 
 ## Phase 3 — Sections
 
-- [ ] **T06 — Certifications section**
+- [x] **T06 — Certifications section**
   - **RF:** RF-01–RF-03, RF-08, RF-09, RF-17, RF-21
   - **Depends on:** T02, T03, T04
   - **Scope:** Create `sections/certifications/` (`.ts`, `.html`, empty `.css`, `.spec.ts`):
@@ -52,7 +52,7 @@
     - When empty, show the empty-state card and no link (D9).
   - **Done when:** U-SC-1–U-SC-7 pass.
 
-- [ ] **T07 — Blog section**
+- [x] **T07 — Blog section**
   - **RF:** RF-10, RF-11, RF-15, RF-16, RF-17, RF-21
   - **Depends on:** T02, T03, T05 (can run in parallel with T06)
   - **Scope:** Create `sections/blog/` (`.ts`, `.html`, empty `.css`, `.spec.ts`):
