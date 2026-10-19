@@ -32,7 +32,6 @@ export const es: Messages = {
     intro:
       'Desarrollador full-stack que trabaja con Angular, Node.js y Kubernetes. Construyo aplicaciones web y opero los servidores que las sostienen.',
     contactMe: 'Contáctame',
-    downloadResume: 'Descargar CV',
     viewResume: 'Ver CV',
     followMe: 'Sígueme:',
     linksSoon: 'Enlaces próximamente.',

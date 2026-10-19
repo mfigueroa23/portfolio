@@ -36,7 +36,6 @@ export const en = {
     intro:
       'Full-stack developer working with Angular, Node.js, and Kubernetes. I build web apps and run the servers behind them.',
     contactMe: 'Contact Me',
-    downloadResume: 'Download Resume',
     viewResume: 'View Resume',
     followMe: 'Follow me:',
     linksSoon: 'Links coming soon.',
