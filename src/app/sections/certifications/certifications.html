@@ -1,0 +1,62 @@
+<section id="certifications" class="py-32 relative overflow-hidden">
+  <!-- Background Glow -->
+  <div class="absolute top-1/4 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl"></div>
+
+  <section class="container mx-auto px-6 relative z-10">
+    <!-- Section Header -->
+    <article class="text-center mx-auto max-w-3xl mb-16">
+      <span
+        class="text-secondary-foreground text-sm font-medium tracking-wider uppercase animate-fade-in"
+        >{{ m().certifications.eyebrow }}</span
+      >
+      <h2
+        class="text-4xl md:text-5xl font-bold mt-4 mb-6 animate-fade-in animation-delay-100 text-secondary-foreground"
+      >
+        {{ m().certifications.heading.lead }}
+        <span class="font-serif italic font-normal text-white">{{
+          m().certifications.heading.accent
+        }}</span>
+      </h2>
+      <p class="text-muted-foreground animate-fade-in animation-delay-200">
+        {{ m().certifications.intro }}
+      </p>
+    </article>
+
+    @if (certifications().length) {
+      <!-- Certifications Grid -->
+      <article class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        @for (cert of certifications(); track cert.id) {
+          <app-certification-card
+            class="animate-fade-in"
+            [style.animationDelay]="($index + 1) * 100 + 'ms'"
+            [certification]="cert"
+          />
+        }
+      </article>
+
+      <!-- View More CTA -->
+      <article class="text-center mt-12 animate-fade-in animation-delay-500">
+        <a
+          [href]="language.href('/experience#certifications')"
+          class="inline-flex items-center justify-center gap-2 min-h-11 px-6 rounded-full border border-border text-foreground text-sm font-medium hover:border-primary hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        >
+          {{ m().certifications.viewMore }}
+          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </a>
+      </article>
+    } @else {
+      <!-- Empty State -->
+      <article
+        class="glass rounded-2xl p-12 max-w-2xl mx-auto text-center animate-fade-in animation-delay-300"
+      >
+        <div
+          class="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4"
+        >
+          <i class="fa-solid fa-award text-2xl text-primary" aria-hidden="true"></i>
+        </div>
+        <h3 class="text-xl font-semibold mb-2">{{ m().certifications.soon }}</h3>
+        <p class="text-sm text-muted-foreground">{{ m().certifications.updating }}</p>
+      </article>
+    }
+  </section>
+</section>

@@ -24,6 +24,23 @@ describe('Home', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('shows certifications and blog between experience and testimonials (U-HM-1, Spec 007 RF-01, RF-10)', () => {
+    const order = [
+      'about',
+      'projects',
+      'experience',
+      'certifications',
+      'blog',
+      'testimonials',
+      'contact',
+    ];
+    const ids = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('section[id]'),
+      (section) => section.id,
+    ).filter((id) => order.includes(id));
+    expect(ids).toEqual(order);
+  });
 });
 
 describe('Home SEO', () => {

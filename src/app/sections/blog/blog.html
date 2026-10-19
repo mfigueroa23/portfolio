@@ -1,0 +1,61 @@
+<section id="blog" class="py-32 relative overflow-hidden">
+  <!-- Background Glow -->
+  <div class="absolute bottom-1/4 left-0 w-64 h-64 bg-highlight/5 rounded-full blur-3xl"></div>
+
+  <section class="container mx-auto px-6 relative z-10">
+    <!-- Section Header -->
+    <article class="max-w-3xl mb-16">
+      <span
+        class="text-secondary-foreground text-sm font-medium tracking-wider uppercase animate-fade-in"
+        >{{ m().blog.eyebrow }}</span
+      >
+      <h2
+        class="text-4xl md:text-5xl font-bold mt-4 mb-6 animate-fade-in animation-delay-100 text-secondary-foreground"
+      >
+        {{ m().pages.blog.heading.lead }}
+        <span class="font-serif italic font-normal text-white">{{
+          m().pages.blog.heading.accent
+        }}</span>
+      </h2>
+      <p class="text-muted-foreground animate-fade-in animation-delay-200">
+        {{ m().pages.blog.intro }}
+      </p>
+    </article>
+
+    @if (posts().length) {
+      <!-- Posts Grid -->
+      <article class="grid md:grid-cols-2 gap-8">
+        @for (post of posts(); track post.id) {
+          <app-post-card
+            class="animate-fade-in"
+            [style.animationDelay]="($index + 1) * 100 + 'ms'"
+            [post]="post"
+          />
+        }
+      </article>
+
+      <!-- View More CTA -->
+      <article class="text-center mt-12 animate-fade-in animation-delay-500">
+        <a
+          [href]="language.href('/blog')"
+          class="inline-flex items-center justify-center gap-2 min-h-11 px-6 rounded-full border border-border text-foreground text-sm font-medium hover:border-primary hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        >
+          {{ m().blog.viewMore }} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </a>
+      </article>
+    } @else {
+      <!-- Empty State -->
+      <article
+        class="glass rounded-2xl p-12 max-w-2xl mx-auto text-center animate-fade-in animation-delay-300"
+      >
+        <div
+          class="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4"
+        >
+          <i class="fa-solid fa-pen-nib text-2xl text-primary" aria-hidden="true"></i>
+        </div>
+        <h3 class="text-xl font-semibold mb-2">{{ m().blog.soon }}</h3>
+        <p class="text-sm text-muted-foreground">{{ m().blog.soonText }}</p>
+      </article>
+    }
+  </section>
+</section>

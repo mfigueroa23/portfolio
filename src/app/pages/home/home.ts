@@ -4,12 +4,14 @@ import { SeoService } from '../../core/services/seo.service';
 import { About } from '../../sections/about/about';
 import { Projects } from '../../sections/projects/projects';
 import { Experience } from '../../sections/experience/experience';
+import { Certifications } from '../../sections/certifications/certifications';
+import { Blog } from '../../sections/blog/blog';
 import { Contact } from '../../sections/contact/contact';
 import { Hero } from '../../sections/hero/hero';
 import { Testimonials } from '../../sections/testimonials/testimonials';
 
 @Component({
-  imports: [Hero, About, Projects, Experience, Testimonials, Contact],
+  imports: [Hero, About, Projects, Experience, Certifications, Blog, Testimonials, Contact],
   selector: 'app-home',
   styleUrl: './home.css',
   templateUrl: './home.html',

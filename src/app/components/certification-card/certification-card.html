@@ -1,0 +1,62 @@
+@let cert = certification();
+<article
+  class="glass rounded-2xl p-6 flex flex-col gap-5 h-full"
+  [attr.lang]="language.itemLang(cert)"
+>
+  <div class="flex items-start justify-between">
+    <span
+      class="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center"
+      aria-hidden="true"
+    >
+      <i class="fa-solid fa-award text-lg text-primary"></i>
+    </span>
+    @if (expired()) {
+      <span
+        class="px-2.5 py-0.5 rounded-full bg-highlight/15 text-highlight text-xs font-semibold"
+        >{{ m().pages.experience.expired }}</span
+      >
+    }
+  </div>
+  <div>
+    <h3 class="text-lg font-semibold">{{ cert.name }}</h3>
+    <p class="text-muted-foreground">{{ cert.issuer }}</p>
+  </div>
+  <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
+    <dt class="text-muted-foreground">{{ m().pages.experience.issued }}</dt>
+    <dd>{{ issued() }}</dd>
+    <dt class="text-muted-foreground">
+      {{ expired() ? m().pages.experience.expired : m().pages.experience.expires }}
+    </dt>
+    <dd>{{ expires() ?? m().pages.experience.noExpiry }}</dd>
+    @if (cert.credentialId) {
+      <dt class="text-muted-foreground">{{ m().pages.experience.credential }}</dt>
+      <dd class="break-all">{{ cert.credentialId }}</dd>
+    }
+  </dl>
+  @if (cert.fileUrl || cert.verificationUrl) {
+    <div class="flex flex-wrap gap-x-6 gap-y-2 mt-auto text-sm font-medium">
+      @if (cert.fileUrl) {
+        <a
+          [href]="cert.fileUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 min-h-11 text-primary hover:underline"
+        >
+          {{ m().pages.experience.viewCertificate }}
+          <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+        </a>
+      }
+      @if (cert.verificationUrl) {
+        <a
+          [href]="cert.verificationUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 min-h-11 text-primary hover:underline"
+        >
+          {{ m().pages.experience.verify }}
+          <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+        </a>
+      }
+    </div>
+  }
+</article>

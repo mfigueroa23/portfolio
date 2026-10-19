@@ -25,8 +25,9 @@ export class Navigation {
       { href: '/#about', label: nav.about },
       { href: '/#projects', label: nav.projects },
       { href: '/#experience', label: nav.experience },
+      { href: '/#certifications', label: nav.certifications },
+      { href: '/#blog', label: nav.blog },
       { href: '/#testimonials', label: nav.testimonials },
-      { href: '/blog', label: nav.blog },
     ].map((link) => ({ ...link, href: this.language.href(link.href) }));
   })();
   public readonly isMobileMenuOpen = signal(false);
@@ -36,6 +37,13 @@ export class Navigation {
   public showMenu = (): void => {
     this.isMobileMenuOpen.update((open) => !open);
   };
+  /**
+   * Closes the phone menu once an option is chosen. The options are plain links, and a section
+   * of the same page changes only the hash, so nothing else would close it (Spec 007 RF-25, D6).
+   */
+  public closeMenu(event: Event): void {
+    if ((event.target as Element | null)?.closest('a')) this.isMobileMenuOpen.set(false);
+  }
   protected onScroll(): void {
     this.isScrolled.set(window.scrollY > 50);
   }

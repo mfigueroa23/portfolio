@@ -12,6 +12,7 @@ export const en = {
     about: 'About',
     projects: 'Projects',
     experience: 'Experience',
+    certifications: 'Certifications',
     testimonials: 'Testimonials',
     blog: 'Blog',
     contact: 'Contact',
@@ -78,6 +79,20 @@ export const en = {
     viewMoreHint: 'Full history, details and certifications',
     soon: 'Experience coming soon',
     updating: "I'm updating this section. Please check back soon.",
+  },
+  certifications: {
+    eyebrow: 'Credentials',
+    heading: { lead: 'Always', accent: 'learning.' } as AccentHeading,
+    intro: 'My most recent certifications, each with its certificate and a way to verify it.',
+    viewMore: 'See all certifications',
+    soon: 'Certifications coming soon',
+    updating: "I'm updating this section. Please check back soon.",
+  },
+  blog: {
+    eyebrow: 'Latest Writing',
+    viewMore: 'Read all posts',
+    soon: 'Posts coming soon',
+    soonText: "I'm writing the first articles. Please check back soon.",
   },
   testimonials: {
     eyebrow: 'What People Say',

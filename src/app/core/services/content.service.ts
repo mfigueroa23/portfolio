@@ -8,7 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { HttpClient, HttpErrorResponse, httpResource } from '@angular/common/http';
-import { catchError, of, timeout } from 'rxjs';
+import { catchError, map, of, timeout } from 'rxjs';
 import { API_URL } from '../config/api';
 import { LanguageService } from '../i18n/language.service';
 import {
@@ -17,6 +17,7 @@ import {
   Experience,
   PostDetail,
   PostPage,
+  PostSummary,
   Project,
   ProjectDetail,
 } from '../interfaces/content';
@@ -52,13 +53,34 @@ export class ContentService {
    * browser, a second GET bypasses that cache to pick up content edited after the release.
    */
   public collection<T>(name: ContentCollection, params?: Record<string, number>): Signal<T[]> {
-    const url = `${API_URL}/content/${name}`;
+    return this.live<T[], T>(`${API_URL}/content/${name}`, params, (items) => items);
+  }
+
+  /**
+   * The newest published posts (page 1 of the blog, 10 at most), with the same prerender and
+   * browser refetch as `collection()` (Spec 007 RF-11, RF-17 to RF-19, plan D1).
+   */
+  public latestPosts(): Signal<PostSummary[]> {
+    return this.live<PostPage, PostSummary>(
+      `${API_URL}/content/posts`,
+      undefined,
+      (page) => page.items,
+    );
+  }
+
+  /** Loads a list as described in `collection()`; `pick` takes the items out of the body. */
+  private live<R, T>(
+    url: string,
+    params: Record<string, number> | undefined,
+    pick: (body: R) => T[],
+  ): Signal<T[]> {
     const query = { ...params, lang: this.lang() };
     const items = signal<T[]>([]);
 
     this.http
-      .get<T[]>(url, { params: query })
+      .get<R>(url, { params: query })
       .pipe(
+        map(pick),
         timeout(LOAD_TIMEOUT_MS),
         catchError(() => of<T[]>([])),
       )
@@ -67,14 +89,17 @@ export class ContentService {
     // afterNextRender never runs on the server, so the refetch is browser-only.
     afterNextRender(
       () => {
-        this.http.get<T[]>(url, { params: query, transferCache: false }).subscribe({
-          next: (fresh) => {
-            // Avoid a new emission (and re-render) when the content did not change.
-            if (JSON.stringify(fresh) !== JSON.stringify(items())) items.set(fresh);
-          },
-          // Keep the prerendered content silently if the API is unreachable.
-          error: () => undefined,
-        });
+        this.http
+          .get<R>(url, { params: query, transferCache: false })
+          .pipe(map(pick))
+          .subscribe({
+            next: (fresh) => {
+              // Avoid a new emission (and re-render) when the content did not change.
+              if (JSON.stringify(fresh) !== JSON.stringify(items())) items.set(fresh);
+            },
+            // Keep the prerendered content silently if the API is unreachable.
+            error: () => undefined,
+          });
       },
       { injector: this.injector },
     );

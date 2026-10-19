@@ -1,21 +1,14 @@
-import { afterNextRender, Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
+import { CertificationCard } from '../../components/certification-card/certification-card';
 import { MarkdownBody } from '../../components/markdown-body/markdown-body';
-import { Certification } from '../../core/interfaces/content';
 import { LanguageService } from '../../core/i18n/language.service';
 import { ContentService } from '../../core/services/content.service';
 import { SeoService } from '../../core/services/seo.service';
-import { formatCalendarDate, isExpired } from '../../core/utils/dates';
 import { Unavailable } from '../unavailable/unavailable';
-
-interface CertificationCard extends Certification {
-  issued: string;
-  expires: string | null;
-  expired: boolean;
-}
 
 /** `/experience`: every entry, collapsed, and the certifications below (RF-70–RF-82). */
 @Component({
-  imports: [MarkdownBody, Unavailable],
+  imports: [CertificationCard, MarkdownBody, Unavailable],
   selector: 'app-experience-page',
   templateUrl: './experience-page.html',
 })
@@ -30,27 +23,12 @@ export class ExperiencePage {
     () => !!this.experiences.error() || !!this.certifications.error(),
   );
 
-  // The server only knows UTC; after rendering, the browser uses the visitor's zone (RF-82).
-  private readonly timeZone = signal<string | undefined>('UTC');
-
-  protected readonly certificationCards = computed<CertificationCard[]>(() => {
-    const now = new Date();
-    const timeZone = this.timeZone();
-    const lang = this.language.lang();
-    return [...(this.certifications.value() ?? [])]
-      .sort((a, b) => a.position - b.position)
-      .map((certification) => ({
-        ...certification,
-        issued: formatCalendarDate(certification.issueDate, lang),
-        expires: certification.expiryDate
-          ? formatCalendarDate(certification.expiryDate, lang)
-          : null,
-        expired: isExpired(certification.expiryDate, now, timeZone),
-      }));
-  });
+  // The owner's order; each card formats its own dates (Spec 007 plan D3).
+  protected readonly certificationCards = computed(() =>
+    [...(this.certifications.value() ?? [])].sort((a, b) => a.position - b.position),
+  );
 
   constructor() {
-    afterNextRender(() => this.timeZone.set(undefined));
     const { seoTitle, seoDescription } = this.m().pages.experience;
     inject(SeoService).set({ title: seoTitle, description: seoDescription, path: '/experience' });
   }

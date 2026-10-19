@@ -93,3 +93,29 @@ describe('resume preview texts (Spec 006 RF-26)', () => {
     expect(es.resumePreview.page(2, 3)).toBe('Página 2 de 3');
   });
 });
+
+describe('home certifications and blog texts (Spec 007 RF-21, RF-22)', () => {
+  it('has the same keys in English and Spanish (U-MS-1)', () => {
+    expect(keyPaths(es.certifications)).toEqual(keyPaths(en.certifications));
+    expect(keyPaths(es.blog)).toEqual(keyPaths(en.blog));
+  });
+
+  it.each([
+    ['en', en],
+    ['es', es],
+  ])('has no blank text in %s (U-MS-1)', (_, messages) => {
+    for (const text of strings([messages.certifications, messages.blog])) {
+      expect(text.trim()).not.toBe('');
+    }
+    expect(messages.nav.certifications.trim()).not.toBe('');
+  });
+
+  it('names the menu link and the "see all" links in both languages', () => {
+    expect(en.nav.certifications).toBe('Certifications');
+    expect(es.nav.certifications).toBe('Certificaciones');
+    expect(en.certifications.viewMore).toBe('See all certifications');
+    expect(es.certifications.viewMore).toBe('Ver todas las certificaciones');
+    expect(en.blog.viewMore).toBe('Read all posts');
+    expect(es.blog.viewMore).toBe('Ver todos los artículos');
+  });
+});
