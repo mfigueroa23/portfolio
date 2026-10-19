@@ -78,7 +78,7 @@
 
 ## Phase 5 — Verification and release
 
-- [ ] **T10 — Quality gate**
+- [x] **T10 — Quality gate**
   - **RF:** —
   - **Depends on:** T08, T09
   - **Scope:** Run the `AGENTS.md` closing checks on the whole branch.
@@ -87,8 +87,9 @@
     - `pnpm build` finishes with no errors or exceeded budgets (initial < 500 kB, component styles < 4 kB).
     - `scripts/check-ssr-csp.sh` passes.
     - `pnpm exec prettier --check` is clean on every touched file.
+  - Run on 2026-10-18: 57 test files and 522 tests pass. `pnpm build` has no errors or exceeded budgets (initial total 392.53 kB) and prerenders 2 routes. `scripts/check-ssr-csp.sh` reports that the generated CSP covers every inline script of the SSR pages. Prettier is clean on the 31 files of the branch.
 
-- [ ] **T11 — Manual checks**
+- [x] **T11 — Manual checks**
   - **RF:** RF-01, RF-08, RF-10, RF-15, RF-17, RF-23–RF-25
   - **Depends on:** T10
   - **Scope:** Run the checks the tests cannot cover. Use the build from T10, with the prerendered files under `dist/devsonic.cl/browser/` and the SSR server (`node dist/devsonic.cl/server/server.mjs`), at desktop and phone width.
@@ -98,6 +99,13 @@
     - M3: the phone menu closes after choosing a section, the contact button or a language.
     - M4: `/experience` looks as before.
     - Any failure is noted here.
+  - Run on 2026-10-18 with `API_URL=https://api.figueroa-sanchez.com pnpm build`. The default build reads `API_URL=http://localhost:3000` from `.env`, and with no local API every home section prerenders its empty state, which also shows RF-09 and RF-16 on a real build. The pages were opened in a headless Chromium driven over CDP. The SSR server does not serve the static files (nginx does in production), so a small local stand-in of `nginx.conf` served `dist/devsonic.cl/browser` and proxied the SSR routes to it. All 13 checks pass:
+    - M1: `index.html` and `es/index.html` hold 3 certifications (Data Analytics, then Basic Software Design and Basic Programming, which win the 2025-06-24 tie by position) and 2 posts, with "see all" links to `/experience#certifications` and `/blog` (`/es/…` in Spanish).
+    - RF-19: the browser refetch is rejected by the production API's CORS on `localhost`, and the prerendered 3 certifications and 2 posts stay.
+    - M2: the menu's Certifications and Blog scroll to their sections, also from `/blog`. "See all certifications" opens `/experience` with its heading 112 px from the top, below the fixed header (a `scroll-mt-28` was added to that heading in T04). "Read all posts" opens `/blog`.
+    - M3: at 390 × 844 under `/es`, the menu lists Sobre mí, Proyectos, Experiencia, Certificaciones, Blog and Testimonios. It closes, with the bars icon back, after Certificaciones (the page shows the section), Contáctame (`#contact`) and EN (opens `/`).
+    - M4: `/experience` shows its 5 certifications in the owner's order with the same cards (screenshot reviewed).
+    - Not checked: a real phone, and browsers other than Chromium.
 
 - [ ] **T12 — Version bump**
   - **RF:** —
