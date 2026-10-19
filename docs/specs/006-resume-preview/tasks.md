@@ -67,23 +67,41 @@
 
 ## Phase 4 — Verification and release
 
-- [ ] **T07 — Quality gate**
+- [x] **T07 — Quality gate**
   - **RF:** —
   - **Depends on:** T06
   - **Scope:** the closing commands from `AGENTS.md`.
   - **Done when:** `pnpm test --watch=false` passes (all U-RS, U-PR, U-RP, U-H and U-M cases included), `pnpm build` ends with no errors or exceeded budgets and the initial total is below 500 kB, `scripts/check-ssr-csp.sh` prints that the CSP covers every inline script, and `pnpm exec prettier --check .` is clean.
+  - Run on 2026-10-18: 53 files and 478 tests pass, the build has no budget warning (initial total 390.63 kB), and the CSP check passes. `prettier --check` is clean on every file this branch touches; `prettier --check .` still lists 7 files that were already unformatted on `main` (`.postcssrc.json`, `pnpm-lock.yaml`, `public/site.webmanifest`, `SECURITY.md`, `animated-button.html`, `src/index.html`, `tsconfig.spec.json`), left for a separate change.
 
 - [ ] **T08 — Manual checks against the local API**
   - **RF:** RF-08–RF-10, RF-13, RF-15–RF-16, RF-18–RF-25, RF-27–RF-28, RF-31
   - **Depends on:** T07
   - **Scope:** `api` 6.1.0 running locally with an English and a Spanish PDF assigned (`PUT /resume/assignments/en|es`), `pnpm start` against it. Record the results in this file under T08, as in Spec 001's T18.
   - **Done when:** M1–M5 are recorded as passed: language and Spanish fallback (M1), multi-page render and downloaded file names (M2), 1280 px / 375 px layout, scroll lock and rotation on a real phone (M3), keyboard-only use (M4), 404, API stopped and Retry (M5).
+  - Run on 2026-10-18 against the local `api` 6.1.0 with the owner's real EN and ES resumes assigned, through a headless Chromium driven over CDP on the built site (`dist/devsonic.cl/browser` served statically): 40/42 checks pass, and the 2 left are the browser's own network log of the 404 and the offline requests the checks cause on purpose. The 404 and the three-page PDF were produced by intercepting `GET /resume`, which runs the same client code, so the owner's local assignments were never changed. The run found a "ResizeObserver loop" error on rotation, fixed in `fix(resume): Draw the resume pages in the next frame after a resize`. Three items are still open.
+    - [x] `/` requests `lang=en` and draws the English PDF; `/es` requests `lang=es` and draws the Spanish one (M1, RF-04).
+    - [ ] Spanish fallback with only English assigned (M1, RF-13). Not run against real data, to keep the owner's assignments; the web treats any 200 the same (U-RS-1) and the fallback is covered by the `api` Spec 005 e2e tests.
+    - [x] A three-page PDF draws every page in order, labelled "Página n de 3" (M2, RF-08, RF-11).
+    - [x] Download saves `Marco-Figueroa-Resume.pdf` / `Marco-Figueroa-CV.pdf`, byte-identical to the API response, with no new request, and the dialog stays open (M2, RF-15–RF-17).
+    - [x] 1280 × 800: a 768 × 720 px window centered over the dimmed page; 375 × 812: full screen with Download and Close still at the top after scrolling the pages (M3, RF-24, RF-25).
+    - [x] A wheel over the backdrop does not scroll the page, and the root has `overflow: hidden` (M3, RF-09).
+    - [x] Rotating to 812 × 375 fits the pages to the new width (343 → 698 px) with no console error (M3, RF-10).
+    - [ ] The same on a real phone. Emulated only.
+    - [x] Keyboard only: focus starts on Close, Tab moves through the scroll area, Download and Close and never reaches the page behind (it passes through the browser UI, as with any native modal), focus is visible, and Escape closes and returns focus to the hero button (M4, RF-18, RF-19, RF-21–RF-23).
+    - [x] Close and a backdrop click close; reopening draws again with no new request (RF-05, RF-18).
+    - [x] 404 shows "The resume is not available right now." without the API text, with Download disabled, and Retry draws the PDF once it exists (M5, RF-07, RF-27, RF-31).
+    - [x] Offline shows the generic text, and Retry back online draws the PDF (M5, RF-28, RF-31).
+    - [x] A request with no answer shows the timeout text after 30 s (RF-30).
+    - [ ] A screen reader (VoiceOver) reads the dialog title, the page labels and the error alert. The roles and labels are in place; not heard yet.
 
 - [ ] **T09 — Built site and CSP check in the Docker `static` image**
   - **RF:** RF-14, RF-32, RF-33
   - **Depends on:** T07 (can run in parallel with T08)
   - **Scope:** `docker build --target static .` and `docker build --target ssr .` with local `API_URL`; open the preview in Chrome, Firefox and Safari with the console open.
   - **Done when:** M6 (`/Marco-Figueroa-Resume.pdf` answers 404) and M7 (no CSP violation when opening the preview; pdf.js and `worker-*.js` load only on the first open, seen in the network panel) are recorded as passed. If a browser blocks the worker, stop and ask to approve `worker-src 'self'` in `nginx.conf` (D7).
+  - Run on 2026-10-18: both images build with `API_URL=http://localhost:3000`. The `static` image has no `/Marco-Figueroa-Resume.pdf` (404) and ships `worker-*.js` (M6). Its site files were served with the image's own CSP, minus `upgrade-insecure-requests` because the local run is plain HTTP, and opened in headless Chromium (M7): the worker loads only on the first open, the PDF draws, Download works and no CSP violation is reported, so `worker-src` falling back to `script-src 'self'` is enough there (D7). One item is still open.
+    - [ ] The same check in Firefox and Safari. Only Chromium was available headless.
 
 - [ ] **T10 — Version bump**
   - **RF:** —
