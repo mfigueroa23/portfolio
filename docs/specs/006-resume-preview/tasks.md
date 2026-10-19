@@ -48,7 +48,7 @@
 
 ## Phase 3 — Integration with the site
 
-- [ ] **T05 — Hero trigger and page scroll lock**
+- [x] **T05 — Hero trigger and page scroll lock**
   - **RF:** RF-01, RF-03, RF-09, RF-19
   - **Depends on:** T04
   - **Scope:**
@@ -59,7 +59,7 @@
     - `hero.spec.ts` and, if it has a spec, `animated-button.spec.ts`.
   - **Done when:** U-H-1 and U-H-2 pass, `grep -rn "downloadResume\|Marco-Figueroa-Resume.pdf" src` finds nothing, and `pnpm build` lists pdf.js only as a lazy chunk, writes a `worker-*.js` file to `dist/devsonic.cl/browser` and the server build does not fail on the worker (moved from T04).
 
-- [ ] **T06 — Remove the static resume**
+- [x] **T06 — Remove the static resume**
   - **RF:** RF-32
   - **Depends on:** T05
   - **Scope:** delete `public/Marco-Figueroa-Resume.pdf` (approved).
