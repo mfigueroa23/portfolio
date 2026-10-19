@@ -39,7 +39,10 @@
   <!-- Mobile Navigation Menu -->
   @if (isMobileMenuOpen()) {
     <section class="md:hidden glass-strong animate-fade-in">
-      <nav class="container mx-auto px-6 py-6 flex flex-col gap-4 items-center">
+      <nav
+        class="container mx-auto px-6 py-6 flex flex-col gap-4 items-center"
+        (click)="closeMenu($event)"
+      >
         @for (link of navLinks; track $index) {
           <a
             href="{{ link.href }}"

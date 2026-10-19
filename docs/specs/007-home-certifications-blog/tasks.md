@@ -64,13 +64,13 @@
 
 ## Phase 4 — Integration
 
-- [ ] **T08 — Home order**
+- [x] **T08 — Home order**
   - **RF:** RF-01, RF-10
   - **Depends on:** T06, T07
   - **Scope:** `home.ts` imports `Certifications` and `Blog`. `home.html` renders Hero · About · Projects · Experience · Certifications · Blog · Testimonials · Contact. Extend `home.spec.ts`.
   - **Done when:** U-HM-1 passes.
 
-- [ ] **T09 — Navigation links and mobile menu**
+- [x] **T09 — Navigation links and mobile menu**
   - **RF:** RF-22–RF-25
   - **Depends on:** T02 (can run in parallel with T03–T08)
   - **Scope:** `navigation.ts` changes `navLinks` to About, Projects, Experience, Certifications (`/#certifications`), Blog (`/#blog`), Testimonials (D5). `navigation.html` gets one delegated `(click)` on the mobile `<nav>`, which closes the menu when the target is inside an `<a>` (D6). Update `navigation.spec.ts`: the old `/blog` link test becomes U-NV-2.
