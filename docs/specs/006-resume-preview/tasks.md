@@ -7,17 +7,18 @@
 
 ## Phase 1 — Foundations
 
-- [ ] **T01 — PDF renderer: `pdfjs-dist`, worker entry and `PdfRendererService`**
+- [x] **T01 — PDF renderer: `pdfjs-dist`, worker entry and `PdfRendererService`**
   - **RF:** RF-08, RF-10, RF-12, RF-14, RF-29
   - **Depends on:** — (can run in parallel with T02 and T03)
   - **Scope:**
     - `pnpm add pdfjs-dist@^6.4.299` (approved).
     - `core/services/pdf.worker.ts`: the one-line worker entry that imports `pdfjs-dist/build/pdf.worker.mjs` (D3). If TypeScript rejects the side-effect import, add the ambient declaration from the plan's risks.
-    - `core/services/pdf-renderer.service.ts`: the `PDFJS_LOADER` token with the dynamic `import('pdfjs-dist')` and the worker port set once (D2, D3); `open(data)` with a copy of the bytes (D8), `isEvalSupported: false` and no scripting (D9); `PdfDocument` with `pageCount`, `render(page, canvas, cssWidth)` fitted to the width × `devicePixelRatio` (D10) and `destroy()`.
+    - `core/services/pdf-renderer.service.ts`: the `PDFJS_LOADER` token with the dynamic `import('pdfjs-dist')` and the worker port set once (D2, D3); `open(data)` with a copy of the bytes (D8), `enableXfa: false` and no scripting (D9; pdf.js 6 dropped `isEvalSupported`); `PdfDocument` with `pageCount`, `render(page, canvas, cssWidth)` fitted to the width × `devicePixelRatio` (D10) and `destroy()`.
     - `pdf-renderer.service.spec.ts` with a fake loader.
   - **Done when:** U-PR-1…U-PR-6 pass; `pnpm build` succeeds with no budget warning, its stats list pdf.js only as a lazy chunk and a `worker-*.js` file in `dist/devsonic.cl/browser`, and the server build does not fail on the worker (plan risk 1).
+  - **Note:** nothing imports the service until T04, so the build drops it and the lazy chunk and `worker-*.js` cannot be seen yet. That check moved to T04.
 
-- [ ] **T02 — Resume request: `ResumeResult` and `ResumeService`**
+- [x] **T02 — Resume request: `ResumeResult` and `ResumeService`**
   - **RF:** RF-04, RF-05, RF-13, RF-20, RF-27, RF-28, RF-30, RF-31
   - **Depends on:** — (can run in parallel with T01 and T03)
   - **Scope:**
@@ -26,11 +27,11 @@
     - `resume.service.spec.ts` with `HttpTestingController`.
   - **Done when:** U-RS-1…U-RS-9 pass.
 
-- [ ] **T03 — Dictionary texts: `hero.viewResume` and `resumePreview`**
+- [x] **T03 — Dictionary texts: `hero.viewResume` and `resumePreview`**
   - **RF:** RF-01, RF-16, RF-26
   - **Depends on:** — (can run in parallel with T01 and T02)
   - **Scope:**
-    - `messages.en.ts` / `messages.es.ts`: add `hero.viewResume` ("View Resume" / "Ver CV") and the `resumePreview` block (`title`, `close`, `download`, `retry`, `loading`, `page(n, total)`, `notFound`, `error`, `timeout`, `fileName`). `hero.downloadResume` stays until T05, so the build keeps passing.
+    - `messages.en.ts` / `messages.es.ts`: add `hero.viewResume` ("View Resume" / "Ver CV") and the `resumePreview` block (`title`, `close`, `download`, `downloadLabel`, `retry`, `loading`, `page(n, total)`, `errors.notFound|generic|timeout`, `fileName`). `hero.downloadResume` stays until T05, so the build keeps passing.
     - `messages.spec.ts`: a `resume preview texts` block like the assistant one.
   - **Done when:** U-M-1…U-M-3 pass and `pnpm build` succeeds.
 
@@ -42,7 +43,7 @@
   - **Scope:**
     - `resume-preview.ts` / `.html` / `.spec.ts`, selector `app-resume-preview`: a native `<dialog>` with the `TestimonialDialog` pattern (D1); `loading | ready | error` states; one canvas per page labelled with `page(n, total)`; `ResizeObserver` re-render on width change only (D10); `download()` through a `Blob` URL with `fileName` (D11); `retry()`; `AbortController` + generation counter on close (D5); sticky header, full screen under `md`, centered `max-w-3xl` from `md`, `overscroll-behavior: contain` (D12). No component CSS file unless needed (4 kB budget).
     - The spec reuses the `showModal()`/`close()` emulation of `testimonial-dialog.spec.ts`, and fakes `ResumeService`, `PdfRendererService` and `ResizeObserver`.
-  - **Done when:** U-RP-1…U-RP-16 pass and `pnpm build` shows no `anyComponentStyle` warning.
+  - **Done when:** U-RP-1…U-RP-16 pass and `pnpm build` shows no `anyComponentStyle` warning, lists pdf.js only as a lazy chunk and writes a `worker-*.js` file to `dist/devsonic.cl/browser`, and the server build does not fail on the worker (moved from T01).
 
 ## Phase 3 — Integration with the site
 

@@ -37,6 +37,7 @@ export const en = {
       'Full-stack developer working with Angular, Node.js, and Kubernetes. I build web apps and run the servers behind them.',
     contactMe: 'Contact Me',
     downloadResume: 'Download Resume',
+    viewResume: 'View Resume',
     followMe: 'Follow me:',
     linksSoon: 'Links coming soon.',
     photoAlt: 'Marco Figueroa, full-stack developer',
@@ -247,6 +248,23 @@ export const en = {
       timeout: 'No answer',
       interrupted: 'Interrupted',
     },
+  },
+  /** Resume preview dialog (Spec 006 RF-26). */
+  resumePreview: {
+    title: "Marco Figueroa's resume",
+    close: 'Close resume',
+    download: 'Download',
+    downloadLabel: 'Download resume as PDF',
+    retry: 'Retry',
+    loading: 'Loading resume...',
+    page: (page: number, total: number) => `Page ${page} of ${total}`,
+    /** Shown instead of the API's text (RF-27–RF-30). */
+    errors: {
+      notFound: 'The resume is not available right now.',
+      generic: "We couldn't load the resume. Please try again.",
+      timeout: 'The resume took too long to load. Please try again.',
+    },
+    fileName: 'Marco-Figueroa-Resume.pdf',
   },
 };
 
