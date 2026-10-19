@@ -6,7 +6,7 @@
 
 ## Phase 0 — Gate
 
-- [ ] **T01 — Confirm the shared certification card**
+- [x] **T01 — Confirm the shared certification card**
   - **RF:** RF-04–RF-07
   - **Depends on:** —
   - **Scope:** The spec keeps `/experience` out of scope, and D3 moves its certification card into a shared `app-certification-card` with no visible change. The owner either accepts D3, or D3 becomes "copy the card into the home" and T04 skips the `/experience` switch.
