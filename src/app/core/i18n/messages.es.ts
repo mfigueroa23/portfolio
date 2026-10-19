@@ -8,6 +8,7 @@ export const es: Messages = {
     about: 'Sobre mí',
     projects: 'Proyectos',
     experience: 'Experiencia',
+    certifications: 'Certificaciones',
     testimonials: 'Testimonios',
     blog: 'Blog',
     contact: 'Contacto',
@@ -74,6 +75,20 @@ export const es: Messages = {
     viewMoreHint: 'Historia completa, detalles y certificaciones',
     soon: 'Experiencia próximamente',
     updating: 'Estoy actualizando esta sección. Vuelve pronto.',
+  },
+  certifications: {
+    eyebrow: 'Credenciales',
+    heading: { lead: 'Siempre', accent: 'aprendiendo.' },
+    intro: 'Mis certificaciones más recientes, cada una con su certificado y cómo verificarla.',
+    viewMore: 'Ver todas las certificaciones',
+    soon: 'Certificaciones próximamente',
+    updating: 'Estoy actualizando esta sección. Vuelve pronto.',
+  },
+  blog: {
+    eyebrow: 'Lo último del blog',
+    viewMore: 'Ver todos los artículos',
+    soon: 'Artículos próximamente',
+    soonText: 'Estoy escribiendo los primeros artículos. Vuelve pronto.',
   },
   testimonials: {
     eyebrow: 'Lo que dicen',

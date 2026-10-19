@@ -4,7 +4,13 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { API_URL } from '../config/api';
-import { ProjectDetail, Technology } from '../interfaces/content';
+import {
+  Certification,
+  PostPage,
+  PostSummary,
+  ProjectDetail,
+  Technology,
+} from '../interfaces/content';
 import { ContentService } from './content.service';
 
 describe('ContentService', () => {
@@ -111,6 +117,104 @@ describe('ContentService', () => {
       refetchRequest().error(new ProgressEvent('error'), { status: 0 });
       expect(items()).toEqual(initial);
     });
+  });
+});
+
+describe('ContentService latest posts (Spec 007 RF-11, RF-17 to RF-19)', () => {
+  const url = `${API_URL}/content/posts`;
+  const post = (id: number): PostSummary => ({
+    id,
+    slug: `post-${id}`,
+    title: `Post ${id}`,
+    summary: `Summary ${id}.`,
+    coverUrl: null,
+    tags: ['linux'],
+    publishedAt: `2026-10-${10 + id}T12:00:00.000Z`,
+    readingMinutes: 5,
+  });
+  const page = (items: PostSummary[]): PostPage => ({
+    items,
+    page: 1,
+    totalPages: items.length ? 1 : 0,
+    total: items.length,
+    tag: null,
+  });
+  let service: ContentService;
+  let http: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+    service = TestBed.inject(ContentService);
+    http = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => http.verify());
+
+  const initialRequest = () =>
+    http.expectOne((req) => req.url === url && req.transferCache !== false);
+  const refetchRequest = () =>
+    http.expectOne((req) => req.url === url && req.transferCache === false);
+
+  it('reads the items of the first page, in the page language and without a page number (U-CS-1)', () => {
+    const posts = service.latestPosts();
+    expect(posts()).toEqual([]);
+    const req = initialRequest();
+    expect(req.request.method).toBe('GET');
+    expect(req.request.urlWithParams).toBe(`${url}?lang=en`);
+    req.flush(page([post(2), post(1)]));
+    expect(posts()).toEqual([post(2), post(1)]);
+    TestBed.tick();
+    refetchRequest().flush(page([post(2), post(1)]));
+  });
+
+  it('refetches after the first render and replaces the posts when they changed (U-CS-2)', () => {
+    const posts = service.latestPosts();
+    initialRequest().flush(page([post(1)]));
+    TestBed.tick();
+    refetchRequest().flush(page([post(2), post(1)]));
+    expect(posts()).toEqual([post(2), post(1)]);
+  });
+
+  it('falls back to an empty list when the first load fails (U-CS-3)', () => {
+    const posts = service.latestPosts();
+    initialRequest().flush(
+      { error: 'Internal server error.' },
+      { status: 500, statusText: 'Error' },
+    );
+    expect(posts()).toEqual([]);
+    TestBed.tick();
+    refetchRequest().flush(page([]));
+  });
+
+  it('keeps the loaded posts when the refetch fails (U-CS-3)', () => {
+    const posts = service.latestPosts();
+    initialRequest().flush(page([post(1)]));
+    TestBed.tick();
+    refetchRequest().error(new ProgressEvent('error'), { status: 0 });
+    expect(posts()).toEqual([post(1)]);
+  });
+
+  it('loads every certification as a collection', () => {
+    const certifications = service.collection<Certification>('certifications');
+    const certification: Certification = {
+      id: 1,
+      position: 0,
+      name: 'Data Analytics',
+      issuer: 'Santo Tomas',
+      issueDate: '2026-04-17',
+      expiryDate: null,
+      credentialId: null,
+      verificationUrl: null,
+      fileUrl: null,
+    };
+    http
+      .expectOne((req) => req.urlWithParams === `${API_URL}/content/certifications?lang=en`)
+      .flush([certification]);
+    expect(certifications()).toEqual([certification]);
+    TestBed.tick();
+    http.expectOne((req) => req.transferCache === false).flush([certification]);
   });
 });
 
@@ -290,6 +394,22 @@ describe('ContentService on Spanish pages (RF-150, RF-151)', () => {
     http.expectOne((req) => req.urlWithParams === url && req.transferCache !== false).flush([]);
     TestBed.tick();
     http.expectOne((req) => req.urlWithParams === url && req.transferCache === false).flush([]);
+  });
+
+  it('asks the certifications and the latest posts in Spanish, on both requests (U-CS-4)', () => {
+    service.collection<Certification>('certifications');
+    service.latestPosts();
+    const certifications = `${API_URL}/content/certifications?lang=es`;
+    const posts = `${API_URL}/content/posts?lang=es`;
+    for (const transferCache of [true, false]) {
+      if (!transferCache) TestBed.tick();
+      const matches = (url: string) =>
+        http.expectOne(
+          (req) => req.urlWithParams === url && (req.transferCache === false) === !transferCache,
+        );
+      matches(certifications).flush([]);
+      matches(posts).flush({ items: [], page: 1, totalPages: 0, total: 0, tag: null });
+    }
   });
 
   it('asks the content pages in Spanish', () => {

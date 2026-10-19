@@ -14,13 +14,13 @@
 
 ## Phase 1 — Foundations
 
-- [ ] **T02 — Dictionary texts**
+- [x] **T02 — Dictionary texts**
   - **RF:** RF-21, RF-22
   - **Depends on:** — (can run in parallel with T01, T03, T05)
   - **Scope:** In `messages.en.ts` and `messages.es.ts`, add `nav.certifications`, a `certifications` key (eyebrow, heading, intro, viewMore, soon, updating) and a `blog` key (eyebrow, viewMore, soon, soonText), with the copy from the spec's Decisions table (Copy row). Extend `messages.spec.ts`.
   - **Done when:** U-MS-1 passes and `pnpm build` compiles, so no Spanish key is missing.
 
-- [ ] **T03 — `ContentService.latestPosts()`**
+- [x] **T03 — `ContentService.latestPosts()`**
   - **RF:** RF-11, RF-17–RF-20
   - **Depends on:** — (can run in parallel with T01, T02, T05)
   - **Scope:** Add `'certifications'` to `ContentCollection` in `core/interfaces/content.ts`. Extract the body of `collection()` into a private `live()` helper that takes a `pick` mapper, then add `latestPosts()`, which picks the `items` of `GET /content/posts` (D1). Add the tests to `content.service.spec.ts`.

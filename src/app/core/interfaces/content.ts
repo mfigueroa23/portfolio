@@ -3,6 +3,7 @@ import { Lang } from '../i18n/language';
 // Mirrors the API content collections. `position` is the display order set by the owner;
 // projects and experience entries are ordered by recency instead (Spec 003 RF-141, RF-142).
 export type ContentCollection =
+  | 'certifications'
   | 'experiences'
   | 'projects'
   | 'testimonials'
