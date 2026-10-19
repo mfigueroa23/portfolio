@@ -67,9 +67,10 @@
           <app-button size="lg" [href]="language.href('/#contact')"
             >{{ m().hero.contactMe }} <i class="fa-solid fa-angle-right"></i
           ></app-button>
-          <app-animated-button href="/Marco-Figueroa-Resume.pdf"
-            >{{ m().hero.downloadResume }} <i class="fa-solid fa-download"></i
+          <app-animated-button (pressed)="resumePreview.open($event)"
+            >{{ m().hero.viewResume }} <i class="fa-solid fa-eye" aria-hidden="true"></i
           ></app-animated-button>
+          <app-resume-preview #resumePreview />
         </article>
 
         <!-- Social Links -->

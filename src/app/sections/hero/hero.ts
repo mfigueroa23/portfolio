@@ -1,12 +1,13 @@
 import { Component, computed, inject } from '@angular/core';
 import { Button } from '../../components/button/button';
 import { AnimatedButton } from '../../components/animated-button/animated-button';
+import { ResumePreview } from '../../components/resume-preview/resume-preview';
 import { SocialLink, Technology } from '../../core/interfaces/content';
 import { LanguageService } from '../../core/i18n/language.service';
 import { ContentService } from '../../core/services/content.service';
 
 @Component({
-  imports: [Button, AnimatedButton],
+  imports: [Button, AnimatedButton, ResumePreview],
   selector: 'app-hero',
   styleUrl: './hero.css',
   templateUrl: './hero.html',

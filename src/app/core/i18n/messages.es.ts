@@ -32,7 +32,7 @@ export const es: Messages = {
     intro:
       'Desarrollador full-stack que trabaja con Angular, Node.js y Kubernetes. Construyo aplicaciones web y opero los servidores que las sostienen.',
     contactMe: 'Contáctame',
-    downloadResume: 'Descargar CV',
+    viewResume: 'Ver CV',
     followMe: 'Sígueme:',
     linksSoon: 'Enlaces próximamente.',
     photoAlt: 'Marco Figueroa, desarrollador full-stack',
@@ -241,5 +241,20 @@ export const es: Messages = {
       timeout: 'Sin respuesta',
       interrupted: 'Interrumpido',
     },
+  },
+  resumePreview: {
+    title: 'CV de Marco Figueroa',
+    close: 'Cerrar CV',
+    download: 'Descargar',
+    downloadLabel: 'Descargar el CV en PDF',
+    retry: 'Reintentar',
+    loading: 'Cargando el CV...',
+    page: (page: number, total: number) => `Página ${page} de ${total}`,
+    errors: {
+      notFound: 'El CV no está disponible en este momento.',
+      generic: 'No pudimos cargar el CV. Inténtalo de nuevo.',
+      timeout: 'El CV tardó demasiado en cargar. Inténtalo de nuevo.',
+    },
+    fileName: 'Marco-Figueroa-CV.pdf',
   },
 };

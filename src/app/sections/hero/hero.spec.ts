@@ -2,6 +2,8 @@ import { PlatformLocation } from '@angular/common';
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ContentService } from '../../core/services/content.service';
+import { ResumeService } from '../../core/services/resume.service';
+import { ResumePreview } from '../../components/resume-preview/resume-preview';
 import { ContentCollection, SocialLink, Technology } from '../../core/interfaces/content';
 import { Hero } from './hero';
 
@@ -26,6 +28,7 @@ describe('Hero', () => {
       imports: [Hero],
       providers: [
         { provide: ContentService, useValue: { collection } },
+        { provide: ResumeService, useValue: { load: vi.fn() } },
         { provide: PlatformLocation, useValue: { pathname } },
       ],
     }).compileComponents();
@@ -71,6 +74,35 @@ describe('Hero', () => {
     expect(element.textContent).toContain('Technologies coming soon');
   });
 
+  describe('resume button (Spec 006)', () => {
+    afterEach(() => vi.restoreAllMocks());
+
+    const resumeButton = (element: HTMLElement): HTMLButtonElement =>
+      element.querySelector<HTMLButtonElement>('app-animated-button button')!;
+
+    it('reads "View Resume" and no longer links to the static PDF (U-H-1, RF-01, RF-32)', async () => {
+      const fixture = await render({});
+      const element: HTMLElement = fixture.nativeElement;
+
+      expect(resumeButton(element).textContent).toContain('View Resume');
+      expect(element.textContent).not.toContain('Download Resume');
+      expect(element.innerHTML).not.toContain('Marco-Figueroa-Resume.pdf');
+      expect(element.querySelector('app-resume-preview dialog')).toBeTruthy();
+    });
+
+    it('opens the preview with its button as the focus target (U-H-2, RF-03, RF-19)', async () => {
+      const open = vi.spyOn(ResumePreview.prototype, 'open').mockImplementation(() => undefined);
+      const windowOpen = vi.spyOn(window, 'open').mockImplementation(() => null);
+      const fixture = await render({});
+      const button = resumeButton(fixture.nativeElement);
+
+      button.click();
+
+      expect(open).toHaveBeenCalledExactlyOnceWith(button);
+      expect(windowOpen).not.toHaveBeenCalled();
+    });
+  });
+
   describe('in Spanish', () => {
     beforeEach(() => (pathname = '/es'));
     afterEach(() => (pathname = '/'));
@@ -82,6 +114,7 @@ describe('Hero', () => {
       expect(element.textContent).toContain('Disponible para trabajar');
       expect(element.textContent).toContain('Enlaces próximamente.');
       expect(element.querySelector('a[href="/es#contact"]')?.textContent).toContain('Contáctame');
+      expect(element.querySelector('app-animated-button button')?.textContent).toContain('Ver CV');
       expect(
         element.querySelector('img[alt="Marco Figueroa, desarrollador full-stack"]'),
       ).toBeTruthy();

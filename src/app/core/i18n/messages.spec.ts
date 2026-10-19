@@ -63,3 +63,33 @@ describe('assistant texts (Spec 001 RF-32)', () => {
     }
   });
 });
+
+describe('resume preview texts (Spec 006 RF-26)', () => {
+  it('has the same keys in English and Spanish (U-M-1)', () => {
+    expect(keyPaths(es.resumePreview)).toEqual(keyPaths(en.resumePreview));
+  });
+
+  it.each([
+    ['en', en],
+    ['es', es],
+  ])('has no blank text in %s (U-M-2, RF-01)', (_, messages) => {
+    for (const text of strings(messages.resumePreview)) expect(text.trim()).not.toBe('');
+    expect(messages.hero.viewResume.trim()).not.toBe('');
+    expect(messages.resumePreview.page(1, 3).trim()).not.toBe('');
+  });
+
+  it('labels the hero button "View Resume" and "Ver CV" (RF-01)', () => {
+    expect(en.hero.viewResume).toBe('View Resume');
+    expect(es.hero.viewResume).toBe('Ver CV');
+  });
+
+  it('names the downloaded PDF per language (U-M-3, RF-16)', () => {
+    expect(en.resumePreview.fileName).toBe('Marco-Figueroa-Resume.pdf');
+    expect(es.resumePreview.fileName).toBe('Marco-Figueroa-CV.pdf');
+  });
+
+  it('numbers the pages with the total (RF-11)', () => {
+    expect(en.resumePreview.page(2, 3)).toBe('Page 2 of 3');
+    expect(es.resumePreview.page(2, 3)).toBe('Página 2 de 3');
+  });
+});

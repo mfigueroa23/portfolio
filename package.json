@@ -1,6 +1,6 @@
 {
   "name": "Portfolio",
-  "version": "4.1.0",
+  "version": "4.2.0",
   "author": {
     "name": "Marco Antonio Figueroa Sanchez",
     "email": "marco@figueroa-sanchez.com"
@@ -25,6 +25,7 @@
     "@angular/router": "^22.1.0",
     "@angular/ssr": "^22.1.8",
     "mermaid": "^12.1.0",
+    "pdfjs-dist": "^6.4.299",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },
