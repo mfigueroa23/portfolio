@@ -18,7 +18,7 @@
 
 ## Phase 1 — Foundations
 
-- [ ] **T02 — Shared binary request: `getBinary()` and `ResumeService` over it**
+- [x] **T02 — Shared binary request: `getBinary()` and `ResumeService` over it**
   - **RF:** RF-22, RF-29, RF-30, RF-31, RF-34
   - **Depends on:** T01 (can run in parallel with T04 and T05)
   - **Scope:**
@@ -27,7 +27,7 @@
     - `binary-request.spec.ts` with `HttpTestingController`.
   - **Done when:** U-BR-1…U-BR-5 pass, and U-RS-1…U-RS-9 pass with `resume.service.spec.ts` unchanged.
 
-- [ ] **T03 — Preview types and `CertificateService`**
+- [x] **T03 — Preview types and `CertificateService`**
   - **RF:** RF-05, RF-06, RF-22, RF-29, RF-30, RF-31, RF-32, RF-33
   - **Depends on:** T02
   - **Scope:**
@@ -36,7 +36,7 @@
     - `certificate.service.spec.ts`.
   - **Done when:** U-CS-1…U-CS-10 pass.
 
-- [ ] **T04 — URL and file name utils: `isApiUrl()` and `certificateFileName()`**
+- [x] **T04 — URL and file name utils: `isApiUrl()` and `certificateFileName()`**
   - **RF:** RF-01, RF-02, RF-18
   - **Depends on:** T01 (can run in parallel with T02 and T05)
   - **Scope:**
@@ -44,7 +44,7 @@
     - `core/utils/file-name.ts`: `certificateFileName(name, mime)` (NFD, no diacritics, lowercase, non-alphanumeric runs → `-`, trimmed, extension per mime, fallback `certificate`) (D8). `file-name.spec.ts`.
   - **Done when:** U-API-1…U-API-3 and U-FN-1…U-FN-4 pass.
 
-- [ ] **T05 — Dictionary texts: `certificatePreview`**
+- [x] **T05 — Dictionary texts: `certificatePreview`**
   - **RF:** RF-08, RF-14, RF-28, RF-29, RF-30, RF-31, RF-33
   - **Depends on:** T01 (can run in parallel with T02 and T04)
   - **Scope:**

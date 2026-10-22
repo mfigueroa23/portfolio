@@ -272,4 +272,18 @@ export const es: Messages = {
     },
     fileName: 'Marco-Figueroa-CV.pdf',
   },
+  certificatePreview: {
+    close: 'Cerrar certificado',
+    download: 'Descargar',
+    downloadLabel: 'Descargar certificado',
+    retry: 'Reintentar',
+    loading: 'Cargando el certificado...',
+    page: (page: number, total: number) => `Página ${page} de ${total}`,
+    errors: {
+      notFound: 'Este certificado no está disponible en este momento.',
+      generic: 'No pudimos cargar el certificado. Inténtalo de nuevo.',
+      timeout: 'El certificado tardó demasiado en cargar. Inténtalo de nuevo.',
+      unsupported: 'El archivo de este certificado no se puede mostrar aquí.',
+    },
+  },
 };

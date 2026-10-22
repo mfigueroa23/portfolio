@@ -280,6 +280,22 @@ export const en = {
     },
     fileName: 'Marco-Figueroa-Resume.pdf',
   },
+  /** Certificate preview dialog; the title is the certificate's name (Spec 008 RF-28). */
+  certificatePreview: {
+    close: 'Close certificate',
+    download: 'Download',
+    downloadLabel: 'Download certificate',
+    retry: 'Retry',
+    loading: 'Loading certificate...',
+    page: (page: number, total: number) => `Page ${page} of ${total}`,
+    /** Shown instead of the API's text (RF-29–RF-33). */
+    errors: {
+      notFound: 'This certificate is not available right now.',
+      generic: "We couldn't load the certificate. Please try again.",
+      timeout: 'The certificate took too long to load. Please try again.',
+      unsupported: "This certificate's file can't be shown here.",
+    },
+  },
 };
 
 export type Messages = typeof en;

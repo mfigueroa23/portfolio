@@ -1,14 +1,12 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { firstValueFrom, fromEvent, takeUntil, timeout, TimeoutError } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 import { API_URL } from '../config/api';
 import { Lang } from '../i18n/language';
 import { ResumeResult } from '../interfaces/resume';
+import { FILE_TIMEOUT_MS, getBinary } from './binary-request';
 
 /** How long the resume may take before the request is aborted (Spec 006 RF-30). */
-export const RESUME_TIMEOUT_MS = 30_000;
-
-const GENERIC: ResumeResult = { ok: false, reason: 'generic' };
+export const RESUME_TIMEOUT_MS = FILE_TIMEOUT_MS;
 
 /** Loads the current resume PDF (`GET {API_URL}/resume`, api Spec 005). */
 @Injectable({ providedIn: 'root' })
@@ -25,23 +23,10 @@ export class ResumeService {
   public async load(lang: Lang, signal: AbortSignal): Promise<ResumeResult> {
     const cached = this.loaded.get(lang);
     if (cached) return { ok: true, data: cached };
-    if (signal.aborted) return GENERIC;
-    try {
-      const body = await firstValueFrom(
-        this.http
-          .get(`${API_URL}/resume`, { params: { lang }, responseType: 'arraybuffer' })
-          .pipe(timeout(RESUME_TIMEOUT_MS), takeUntil(fromEvent(signal, 'abort'))),
-      );
-      const data = new Uint8Array(body);
-      this.loaded.set(lang, data);
-      return { ok: true, data };
-    } catch (error) {
-      if (error instanceof TimeoutError) return { ok: false, reason: 'timeout' };
-      if (error instanceof HttpErrorResponse && error.status === 404) {
-        return { ok: false, reason: 'not-found' };
-      }
-      // Any other status, a network or CORS failure, or an abort: the body is never shown (RF-28).
-      return GENERIC;
-    }
+    const result = await getBinary(this.http, `${API_URL}/resume`, { params: { lang } }, signal);
+    if (!result.ok) return result;
+    const data = new Uint8Array(result.body);
+    this.loaded.set(lang, data);
+    return { ok: true, data };
   }
 }
