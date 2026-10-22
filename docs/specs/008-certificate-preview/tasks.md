@@ -72,7 +72,7 @@
 
 ## Phase 3 — Integration with the site
 
-- [ ] **T08 — Certification card: "View certificate" opens the preview**
+- [x] **T08 — Certification card: "View certificate" opens the preview**
   - **RF:** RF-01, RF-02, RF-04, RF-16, RF-21
   - **Depends on:** T07
   - **Scope:** `certification-card.ts` / `.html` / `.spec.ts`: `previewable` from `isApiUrl(fileUrl)`; when true, a `<button type="button" #viewButton>` with the link's classes and `fa-eye`, calling `preview.open(viewButton)`, plus `<app-certificate-preview #preview [certification]="cert" />` (D10); otherwise the current new-tab link. "Verify" unchanged.

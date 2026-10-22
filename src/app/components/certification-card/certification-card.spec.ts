@@ -1,6 +1,8 @@
 import { PlatformLocation } from '@angular/common';
 import { TestBed } from '@angular/core/testing';
+import { API_URL } from '../../core/config/api';
 import { Certification } from '../../core/interfaces/content';
+import { CertificatePreview } from '../certificate-preview/certificate-preview';
 import { CertificationCard } from './certification-card';
 
 describe('CertificationCard', () => {
@@ -18,7 +20,10 @@ describe('CertificationCard', () => {
   });
   let pathname = '/';
 
-  afterEach(() => vi.useRealTimers());
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
 
   const render = async (value: Certification): Promise<HTMLElement> => {
     await TestBed.configureTestingModule({
@@ -69,6 +74,47 @@ describe('CertificationCard', () => {
   it('shows no link when the certification has neither URL (U-CC-3)', async () => {
     const element = await render(certification());
     expect(element.querySelector('a')).toBeNull();
+    expect(element.querySelector('button')).toBeNull();
+    expect(element.querySelector('app-certificate-preview')).toBeNull();
+  });
+
+  describe('with a file on the API (Spec 008)', () => {
+    const apiFile = `${API_URL}/files/cert-1`;
+
+    it('shows "View certificate" as a button that hosts the preview (U-CC-7, RF-01)', async () => {
+      const element = await render(
+        certification({ fileUrl: apiFile, verificationUrl: 'https://verify.example.com/abc' }),
+      );
+      const view = element.querySelector<HTMLButtonElement>('button[data-view-certificate]');
+      expect(view?.type).toBe('button');
+      expect(view?.textContent).toContain('View certificate');
+      expect(view?.hasAttribute('href')).toBe(false);
+      expect(element.querySelector(`a[href="${apiFile}"]`)).toBeNull();
+      expect(element.querySelector('app-certificate-preview dialog')).toBeTruthy();
+      // "Verify" keeps opening in a new tab.
+      const verify = element.querySelector('a[href="https://verify.example.com/abc"]');
+      expect(verify?.getAttribute('target')).toBe('_blank');
+    });
+
+    it('keeps the new-tab link and no preview for a file on another origin (U-CC-8, RF-02)', async () => {
+      const element = await render(certification({ fileUrl: 'https://cdn.example.com/cert.pdf' }));
+      const view = element.querySelector('a[href="https://cdn.example.com/cert.pdf"]');
+      expect(view?.getAttribute('target')).toBe('_blank');
+      expect(element.querySelector('button[data-view-certificate]')).toBeNull();
+      expect(element.querySelector('app-certificate-preview')).toBeNull();
+    });
+
+    it('opens the preview with the button as the trigger (U-CC-9, RF-04, RF-21)', async () => {
+      const open = vi
+        .spyOn(CertificatePreview.prototype, 'open')
+        .mockImplementation(() => undefined);
+      const element = await render(certification({ fileUrl: apiFile }));
+      const view = element.querySelector<HTMLButtonElement>('button[data-view-certificate]')!;
+
+      view.click();
+
+      expect(open).toHaveBeenCalledExactlyOnceWith(view);
+    });
   });
 
   it('labels a certification that expired before today, not one that expires today (U-CC-4)', async () => {

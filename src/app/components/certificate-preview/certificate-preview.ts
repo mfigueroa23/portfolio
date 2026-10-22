@@ -13,6 +13,8 @@ import { FilePreview } from '../file-preview/file-preview';
   selector: 'app-certificate-preview',
   imports: [FilePreview],
   templateUrl: './certificate-preview.html',
+  // No box of its own, so it adds no gap next to the card's links.
+  host: { class: 'contents' },
 })
 export class CertificatePreview {
   public readonly certification = input.required<Certification>();
