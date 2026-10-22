@@ -80,23 +80,39 @@
 
 ## Phase 4 — Verification and release
 
-- [ ] **T09 — Quality gate**
+- [x] **T09 — Quality gate**
   - **RF:** —
   - **Depends on:** T08
   - **Scope:** the closing commands from `AGENTS.md`.
   - **Done when:** `pnpm test --watch=false` passes (all U-BR, U-CS, U-API, U-FN, U-M, U-FP, U-RP, U-RS, U-PR, U-CP and U-CC cases included), `pnpm build` ends with no errors or exceeded budgets, `scripts/check-ssr-csp.sh` prints that the CSP covers every inline script, and `pnpm exec prettier --check` is clean on every file this branch touches.
+  - Run on 2026-10-22: 62 files and 596 tests pass; the build has no budget warning (initial total 393.51 kB, pdf.js a 433.62 kB lazy chunk); the CSP check prints that the generated CSP covers every inline script; `prettier --check` is clean on every file changed since `main`.
 
-- [ ] **T10 — Manual checks against the local API**
+- [x] **T10 — Manual checks against the local API**
   - **RF:** RF-06, RF-10–RF-13, RF-15, RF-17, RF-18, RF-20, RF-21, RF-23–RF-27, RF-32, RF-34
   - **Depends on:** T09
   - **Scope:** `api` running locally with a PDF certificate and an image certificate (PNG or JPEG, plus one SVG and one GIF) whose `fileUrl` is on the local API, and one certificate with an external `fileUrl`; `pnpm start` against it. Record the results in this file under T10, as in Spec 006's T08.
   - **Done when:** M1–M4 are recorded as passed: PDF and image from the home and `/experience`, on `/` and `/es`, with no request on reopen (M1); SVG and large image fitted, download names `<kebab-name>.<ext>` (M2); 1280 px / 375 px layout, scroll lock and rotation (M3); keyboard only, Escape and focus return to "View certificate" (M4); plus 404 and Retry after stopping the API, and the resume preview behaving as before.
+  - Run on 2026-10-22 together with T11, in a headless Chromium driven over CDP against the Docker `static` and `ssr` images built with the production `API_URL` and run in one network namespace, as in the pod (nginx proxying the SSR routes to `127.0.0.1:4000`). A small local proxy gave nginx the production `Host` its `server_name` needs. The page content came from the production API. The local run is not on the site's origin, so the browser's API requests were answered through CDP with the CORS headers the API sends to the real site. Certificate files came from the local `api`, which holds the same bytes; a PNG, an SVG (with a `<script>`), a tall SVG and a GIF were served in place of four of them, and a 404, a `text/html` answer and a request never answered were produced the same way. Downloads were caught through the browser's download events. 39/39 checks pass:
+    - [x] Home: the 3 cards show "View certificate" as a button and no file link; `/experience` shows 5 (M1, RF-01).
+    - [x] A real mouse click and a script click open a modal dialog without changing the URL, labelled by the certificate name, with focus on Close (RF-04, RF-23, RF-24).
+    - [x] The PDF draws fitted to the width (718 px in a 766 px area with its padding), labelled "Page 1 of 1"; reopening sends no new request (M1, RF-06, RF-10, RF-14).
+    - [x] PNG fitted to the width with its ratio and `alt` = the name; SVG shown with its script not run; GIF shown (M2, RF-11, RF-14, RF-15).
+    - [x] Downloads save `data-analytics.pdf`, `advanced-programming.png`, `it-support.svg` and `basic-software-design.gif` with no new request, and the dialog stays open (M2, RF-17–RF-19).
+    - [x] 1280 × 800: a 768 × 720 px window centered over the page, which does not scroll (`overflow: hidden`); 375 × 812: full screen, with Download and Close at the top after scrolling a tall image 400 px; rotating to 812 × 375 refits the PDF (M3, RF-12, RF-13, RF-26, RF-27).
+    - [x] Keyboard: Tab never reaches the page behind; Escape, the close control and a click outside close it, and focus returns to "View certificate" (M4, RF-20, RF-21, RF-25).
+    - [x] A 404 shows "This certificate is not available right now." with Retry and Download disabled, and Retry draws the PDF; a `text/html` file shows "can't be shown here" with no Retry; no answer shows the timeout text after 30 s (RF-29, RF-31–RF-33).
+    - [x] `/es`: "Ver certificado", "Cerrar certificado", "Página 1 de 1"; a certification translated to Spanish has no `lang`; the same file is requested in both languages, once per page load (RF-05–RF-07, RF-28).
+    - [x] The resume preview still draws the resume and downloads `Marco-Figueroa-Resume.pdf` (RF-34).
+    - [ ] **Open question (RF-18):** the owner translated the certification names, so `/es` downloads `analitica-de-datos.pdf` while `/` downloads `data-analytics.pdf`. The site only gets the name in the page language, so RF-18's "the same in both UI languages" cannot hold for a translated name. Asked to the owner: keep the name shown on the page (and reword RF-18), or name the file another way.
+    - [ ] **Open question (RF-31):** the production API sends these files at about 80–200 KB/s from this network: a 4 MB certificate PDF took 20 s and 50 s in two downloads, against 0.1 s from the local API. With the 30 s timeout, a large certificate may show the timeout text in production. Asked to the owner whether to raise the timeout for certificates, shrink the PDFs, or look at the API's throughput.
+    - [ ] A real phone, Firefox and Safari, and a screen reader. Only Chromium was available headless.
 
-- [ ] **T11 — Built site and CSP check in the Docker images**
+- [x] **T11 — Built site and CSP check in the Docker images**
   - **RF:** RF-16, RF-35
   - **Depends on:** T09 (can run in parallel with T10)
   - **Scope:** `docker build --target static .` and `docker build --target ssr .` with local `API_URL`; open a PDF and an image certificate with the console open, on the home and on `/experience`.
   - **Done when:** M5 (no CSP violation for a PDF and an image; an external `fileUrl` opens in a new tab) and M6 (pdf.js loads only on the first PDF open, initial total under 500 kB, resume preview unchanged) are recorded as passed. If a CSP violation appears, stop and ask for approval before touching `nginx.conf` (D6).
+  - Run on 2026-10-22 with the T10 run: both images build with `API_URL=https://api.figueroa-sanchez.com`. The pages kept the image's own CSP, minus `upgrade-insecure-requests` because the local run is plain HTTP. No CSP violation or CSP console error in the whole run, with PDFs and PNG, SVG and GIF images shown from `data:` URLs (M5, RF-35, D6), so `nginx.conf` does not change. A `fileUrl` on another origin (`https://cdn.example.com/…`) is a new-tab link with `rel="noopener noreferrer"` and no preview (M5, RF-02). Opening an image loads neither pdf.js nor its worker, and the first PDF open loads `worker-*.js` (M6, RF-16); the initial total is 393.51 kB (T09) and the resume preview is unchanged (T10).
 
 - [ ] **T12 — Version bump**
   - **RF:** —
