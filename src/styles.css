@@ -29,8 +29,9 @@
     scroll-behavior: smooth;
   }
 
-  /* The page behind the open resume preview does not scroll (Spec 006 RF-09, plan D12). */
-  html:has(dialog.resume-preview[open]) {
+  /* The page behind an open resume or certificate preview does not scroll (Spec 006 RF-09,
+     plan 006 D12; Spec 008 RF-12). */
+  html:has(dialog.file-preview[open]) {
     overflow: hidden;
   }
 

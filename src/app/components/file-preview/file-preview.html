@@ -1,0 +1,98 @@
+<!-- Full screen below md; a centered window over the dimmed page from md (Spec 006 RF-24,
+     RF-25; Spec 008 RF-26, RF-27). The dialog keeps the browser's `display: none` while closed,
+     so the layout lives inside it. -->
+<dialog
+  #dialog
+  [attr.aria-labelledby]="titleId"
+  class="file-preview m-0 w-screen h-dvh max-w-none max-h-none p-0 bg-card text-foreground md:m-auto md:w-[calc(100%-4rem)] md:max-w-3xl md:h-[90dvh] md:rounded-3xl md:border md:border-primary/30 backdrop:bg-background/80 backdrop:backdrop-blur-sm"
+  (click)="onDialogClick($event)"
+  (close)="onClosed()"
+  (keydown.escape)="close()"
+>
+  @let texts = source()?.texts;
+  <div class="flex flex-col h-full">
+    <header
+      class="flex items-center justify-between gap-4 px-4 py-3 md:px-6 md:py-4 border-b border-border"
+    >
+      <h2 [id]="titleId" [attr.lang]="source()?.lang" class="text-lg md:text-xl font-bold">
+        {{ source()?.title }}
+      </h2>
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          data-download
+          [attr.aria-label]="texts?.downloadLabel"
+          [disabled]="!rendered()"
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-primary-foreground font-medium hover:bg-primary/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          (click)="download()"
+        >
+          <i class="fa-solid fa-download" aria-hidden="true"></i>
+          <span class="hidden sm:inline">{{ texts?.download }}</span>
+        </button>
+        <button
+          type="button"
+          data-close
+          [attr.aria-label]="texts?.close"
+          class="p-2 rounded-full text-muted-foreground hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary cursor-pointer"
+          (click)="close()"
+        >
+          <i class="fa-solid fa-xmark text-xl" aria-hidden="true"></i>
+        </button>
+      </div>
+    </header>
+
+    <div class="flex-1 overflow-y-auto overscroll-contain p-4 md:p-6">
+      @let current = state();
+      @if (current.kind === 'loading') {
+        <p
+          role="status"
+          class="flex items-center justify-center gap-3 h-full text-muted-foreground"
+        >
+          <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+          {{ texts?.loading }}
+        </p>
+      } @else if (errorText(); as errorText) {
+        <div
+          role="alert"
+          class="flex flex-col items-center justify-center gap-4 h-full text-center"
+        >
+          <p class="flex items-center gap-3 text-red-400">
+            <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+            {{ errorText }}
+          </p>
+          @if (canRetry()) {
+            <button
+              type="button"
+              data-retry
+              class="inline-flex items-center gap-2 px-5 py-2 rounded-full glass text-primary font-medium hover:bg-primary/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary cursor-pointer"
+              (click)="retry()"
+            >
+              <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
+              {{ texts?.retry }}
+            </button>
+          }
+        </div>
+      } @else if (current.kind === 'image') {
+        <!-- An <img> never runs an SVG's scripts (Spec 008 RF-15, plan 008 D7). -->
+        <img
+          [src]="current.src"
+          [alt]="source()?.title"
+          class="block w-full h-auto bg-white shadow-lg"
+          (load)="onImageLoad()"
+          (error)="onImageError()"
+        />
+      } @else {
+        <div #pages class="flex flex-col items-center gap-4">
+          @for (page of pageNumbers(); track page) {
+            <canvas
+              #page
+              role="img"
+              [attr.aria-label]="texts?.page(page, pageNumbers().length)"
+              class="block max-w-full bg-white shadow-lg"
+            ></canvas>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</dialog>

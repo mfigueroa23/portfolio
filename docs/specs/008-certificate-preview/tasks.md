@@ -54,7 +54,7 @@
 
 ## Phase 2 — Preview dialog
 
-- [ ] **T06 — Shared dialog: `components/file-preview/` and `ResumePreview` as a wrapper**
+- [x] **T06 — Shared dialog: `components/file-preview/` and `ResumePreview` as a wrapper**
   - **RF:** RF-04, RF-07–RF-17, RF-19, RF-20, RF-22–RF-27, RF-29–RF-34
   - **Depends on:** T02, T03, T05
   - **Scope:**
@@ -64,7 +64,7 @@
     - No component CSS file unless needed (4 kB budget).
   - **Done when:** U-FP-1…U-FP-12 pass; U-RP-1…U-RP-16 pass with `resume-preview.spec.ts` unchanged except for imports or helpers (RF-34); U-PR-1…U-PR-6 still pass; `pnpm build` has no `anyComponentStyle` warning.
 
-- [ ] **T07 — Certificate wrapper: `components/certificate-preview/`**
+- [x] **T07 — Certificate wrapper: `components/certificate-preview/`**
   - **RF:** RF-03, RF-04, RF-05, RF-07, RF-18
   - **Depends on:** T03, T04, T05, T06
   - **Scope:** `certificate-preview.ts` / `.html` / `.spec.ts`, selector `app-certificate-preview`: `certification` input; `open(trigger)` builds the `PreviewSource` (title `name`, `lang` from `LanguageService.itemLang()`, texts `m().certificatePreview`, `load` from `CertificateService`, `fileName` from `certificateFileName()`, `renderFailure: 'unsupported'`) and opens the inner `<app-file-preview>`.
