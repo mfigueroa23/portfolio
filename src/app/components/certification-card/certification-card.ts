@@ -1,7 +1,9 @@
 import { afterNextRender, Component, computed, inject, input, signal } from '@angular/core';
+import { isApiUrl } from '../../core/config/api';
 import { LanguageService } from '../../core/i18n/language.service';
 import { Certification } from '../../core/interfaces/content';
 import { formatCalendarDate, isExpired } from '../../core/utils/dates';
+import { CertificatePreview } from '../certificate-preview/certificate-preview';
 
 /**
  * A certification with its dates, credential and links; used on `/experience` and on the home
@@ -9,6 +11,7 @@ import { formatCalendarDate, isExpired } from '../../core/utils/dates';
  */
 @Component({
   selector: 'app-certification-card',
+  imports: [CertificatePreview],
   templateUrl: './certification-card.html',
   host: { class: 'block' },
 })
@@ -27,6 +30,11 @@ export class CertificationCard {
   protected readonly expires = computed(() => {
     const { expiryDate } = this.certification();
     return expiryDate ? formatCalendarDate(expiryDate, this.language.lang()) : null;
+  });
+  /** Only a file on the API can be fetched and drawn in the preview (Spec 008 RF-01, RF-02). */
+  protected readonly previewable = computed(() => {
+    const { fileUrl } = this.certification();
+    return !!fileUrl && isApiUrl(fileUrl);
   });
   protected readonly expired = computed(() =>
     isExpired(this.certification().expiryDate, new Date(), this.timeZone()),

@@ -35,7 +35,20 @@
   </dl>
   @if (cert.fileUrl || cert.verificationUrl) {
     <div class="flex flex-wrap gap-x-6 gap-y-2 mt-auto text-sm font-medium">
-      @if (cert.fileUrl) {
+      @if (previewable()) {
+        <!-- Opens the certificate in the page, like the resume (Spec 008 RF-01, RF-04, D10). -->
+        <button
+          #viewButton
+          type="button"
+          data-view-certificate
+          class="inline-flex items-center gap-2 min-h-11 text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded cursor-pointer"
+          (click)="preview.open(viewButton)"
+        >
+          {{ m().pages.experience.viewCertificate }}
+          <i class="fa-solid fa-eye" aria-hidden="true"></i>
+        </button>
+        <app-certificate-preview #preview [certification]="cert" />
+      } @else if (cert.fileUrl) {
         <a
           [href]="cert.fileUrl"
           target="_blank"

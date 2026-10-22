@@ -16,3 +16,15 @@ export function resolveApiUrl(value: string | undefined): string {
 // bundle; `scripts/ng.mjs` never defines a blank value.
 export const API_URL =
   typeof NG_API_URL === 'string' ? normalize(NG_API_URL) : resolveApiUrl(undefined);
+
+/**
+ * Whether `url` is on the API origin, so the site may fetch it (`connect-src`, CORS). Origins
+ * are compared, not prefixes, so a lookalike host never matches (Spec 008 RF-01, RF-02, D9).
+ */
+export function isApiUrl(url: string): boolean {
+  try {
+    return new URL(url).origin === new URL(API_URL).origin;
+  } catch {
+    return false;
+  }
+}

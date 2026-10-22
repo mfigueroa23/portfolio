@@ -119,3 +119,32 @@ describe('home certifications and blog texts (Spec 007 RF-21, RF-22)', () => {
     expect(es.blog.viewMore).toBe('Ver todos los artículos');
   });
 });
+
+describe('certificate preview texts (Spec 008 RF-28)', () => {
+  it('has the same keys in English and Spanish (U-M-4)', () => {
+    expect(keyPaths(es.certificatePreview)).toEqual(keyPaths(en.certificatePreview));
+  });
+
+  it.each([
+    ['en', en],
+    ['es', es],
+  ])('has no blank text in %s (U-M-5)', (_, messages) => {
+    for (const text of strings(messages.certificatePreview)) expect(text.trim()).not.toBe('');
+  });
+
+  it('numbers the pages with the total (U-M-5, RF-14)', () => {
+    expect(en.certificatePreview.page(2, 3)).toBe('Page 2 of 3');
+    expect(es.certificatePreview.page(2, 3)).toBe('Página 2 de 3');
+  });
+
+  it('has a text for every failure the preview can show (U-M-6, RF-29–RF-33)', () => {
+    for (const messages of [en, es]) {
+      expect(Object.keys(messages.certificatePreview.errors).sort()).toEqual([
+        'generic',
+        'notFound',
+        'timeout',
+        'unsupported',
+      ]);
+    }
+  });
+});
