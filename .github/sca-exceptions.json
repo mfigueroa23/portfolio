@@ -1,12 +1,12 @@
 [
   {
     "id": "GHSA-35jh-r3h4-6jhm",
-    "reason": "Spec 009 E4 probe: valid exception",
-    "expires": "2026-11-30"
+    "reason": "Spec 009 E4 probe: expired exception",
+    "expires": "2026-10-01"
   },
   {
     "id": "GHSA-r5fr-rjxr-66jc",
-    "reason": "Spec 009 E4 probe: valid exception",
+    "reason": "",
     "expires": "2026-11-30"
   }
 ]
