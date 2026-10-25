@@ -24,7 +24,7 @@ jobs:
           persist-credentials: false
 
       - name: 'Installing PNPM'
-        uses: pnpm/setup@fbda4c85fc2e1e08721cd8763afea8f48d60f024 # v3.0.0
+        uses: pnpm/setup@a0881977cd8ea73b1ed212236c99ca10dcc80cf4 # v3.1.1
         with:
           version: 12.6.0
           runtime: node@26.10.0
@@ -159,28 +159,28 @@ jobs:
       # One code scanning category per SARIF file: several runs may not share one.
       - name: 'Upload Scan (portfolio, amd64)'
         if: ${{ always() && hashFiles('grype-portfolio-amd64.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
+        uses: github/codeql-action/upload-sarif@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
         with:
           sarif_file: grype-portfolio-amd64.sarif
           category: sca-image-static-amd64
 
       - name: 'Upload Scan (portfolio, arm64)'
         if: ${{ always() && hashFiles('grype-portfolio-arm64.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
+        uses: github/codeql-action/upload-sarif@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
         with:
           sarif_file: grype-portfolio-arm64.sarif
           category: sca-image-static-arm64
 
       - name: 'Upload Scan (portfolio-ssr, amd64)'
         if: ${{ always() && hashFiles('grype-portfolio-ssr-amd64.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
+        uses: github/codeql-action/upload-sarif@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
         with:
           sarif_file: grype-portfolio-ssr-amd64.sarif
           category: sca-image-ssr-amd64
 
       - name: 'Upload Scan (portfolio-ssr, arm64)'
         if: ${{ always() && hashFiles('grype-portfolio-ssr-arm64.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
+        uses: github/codeql-action/upload-sarif@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
         with:
           sarif_file: grype-portfolio-ssr-arm64.sarif
           category: sca-image-ssr-arm64
