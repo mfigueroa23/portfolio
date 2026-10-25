@@ -105,23 +105,26 @@
 
 ## Phase 5 — Rollout and end-to-end checks
 
-- [ ] **T14 — Open the PR and switch CodeQL to advanced setup**
+- [x] **T14 — Open the PR and switch CodeQL to advanced setup**
   - **RF:** RF-02, RF-05, RF-09, RF-26
   - **Depends on:** T13
   - **Scope:** Open the PR into `main` (`/create-pr`); disable CodeQL default setup (`gh api -X PATCH repos/mfigueroa23/portfolio/code-scanning/default-setup -f state=not-configured`); re-run the PR checks.
   - **Done when:** `gh api repos/mfigueroa23/portfolio/code-scanning/default-setup --jq .state` prints `not-configured`, and the PR shows `Unit Tests`, `Lockfile Scan`, `Analyze (actions)` and `Analyze (javascript-typescript)` green.
+  - Run on 2026-10-25: PR #12 opened; the owner disabled default setup (`not-configured`). The first `Analyze (…)` runs had failed with "CodeQL analyses from advanced configurations cannot be processed when the default setup is enabled"; re-run, they pass. `Unit Tests` (with `Script Tests`, 23 then 26 tests), `Lockfile Scan` (0 blocking, 7 reported), `Analyze (actions)` and `Analyze (javascript-typescript)` are green on `c0f4d02`, and the PR is `CLEAN`.
 
-- [ ] **T15 — Ruleset on `main`**
+- [x] **T15 — Ruleset on `main`**
   - **RF:** RF-06, RF-07, RF-28
   - **Depends on:** T14
   - **Scope:** The existing `Branch Protection` ruleset on `main` keeps its rules (signed commits included) and gains the checks `Lockfile Scan`, `Analyze (actions)` and `Analyze (javascript-typescript)` next to `Unit Tests`, plus the code scanning rule for CodeQL (security alerts `high_or_higher`, alerts `none`; D4); then it is enabled.
   - **Done when:** `gh api repos/mfigueroa23/portfolio/rulesets` lists the ruleset with the four required checks and the `code_scanning` rule.
+  - Run on 2026-10-25: the existing `Branch Protection` ruleset (24062532) keeps deletion, non-fast-forward, signed commits and the PR rule, now requires `Unit Tests`, `Lockfile Scan`, `Analyze (actions)` and `Analyze (javascript-typescript)` plus the CodeQL code scanning rule (`high_or_higher`, alerts `none`), and is `active`. Signed commits led to rework T04 (plan D15).
 
-- [ ] **T16 — Throwaway-branch checks**
+- [x] **T16 — Throwaway-branch checks**
   - **RF:** RF-06, RF-07, RF-08, RF-28, RF-29, RF-30, RF-36, RF-37, RF-38, RF-44, RF-45
   - **Depends on:** T15
   - **Scope:** PRs from throwaway branches off the feature branch, closed without merging: vulnerable `innerHTML` sink, medium-only alert, vulnerable dependency pin with valid/expired/incomplete exceptions, package with an unapproved `postinstall`.
   - **Done when:** E1, E2, E3, E4 and E12 pass as described in the plan, and every throwaway PR and branch is closed and deleted.
+  - Run on 2026-10-25 with throwaway PRs #13 to #16, closed without merging and their branches deleted. E1: `eval(location.hash)` raises `js/code-injection` (critical) and #13 is `BLOCKED` with every required check green; removing it makes it `CLEAN`. E2: `js/xss` is now rated high by CodeQL, so the probe became `js/stack-trace-exposure` (medium): the alert is published and #14 is `CLEAN`. E3: `lodash` 4.17.20 fails `Lockfile Scan` with GHSA-35jh-r3h4-6jhm and GHSA-r5fr-rjxr-66jc blocking. E4: valid exceptions turn them `excepted` and the check passes; an expired one and one without reason fail it, the summary names both entries and #15 is `BLOCKED`. E12: `core-js` without approval fails `Unit Tests` with `ERR_PNPM_IGNORED_BUILDS` naming it; after `pnpm run approve-builds core-js` it passes.
 
 - [ ] **T17 — Merge and verify the release**
   - **RF:** RF-31, RF-33, RF-34, RF-35, RF-40, RF-44
