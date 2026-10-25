@@ -6,9 +6,10 @@ Marco Figueroa's personal portfolio (marco.figueroa-sanchez.com), built with Ang
 
 ## Commands
 
-- Install: `pnpm install`
+- Install: `pnpm install` (fails on a dependency build script not approved in `pnpm-workspace.yaml`; approve or deny it with `pnpm run approve-builds`)
 - Development: `pnpm start` (reads `API_URL` and `AGENT_URL` from `.env`; copy `.env.example`)
 - Tests: `pnpm test --watch=false`
+- Script tests (`scripts/*.test.mjs`): `node --test scripts/`
 - Build (types and budgets): `pnpm build`
 - Local SSR server: `node dist/devsonic.cl/server/server.mjs` (port 4000)
 - CSP of the SSR routes (after `pnpm build`): `scripts/check-ssr-csp.sh`
@@ -38,5 +39,6 @@ Marco Figueroa's personal portfolio (marco.figueroa-sanchez.com), built with Ang
 ## When finishing any task
 
 - `pnpm test --watch=false`, `pnpm build` and `scripts/check-ssr-csp.sh` pass with no errors or exceeded budgets.
+- `node --test scripts/` passes when `scripts/` changes.
 - `pnpm exec prettier --check` is clean on the touched files.
 - Bump `version` in `package.json` (SemVer: fix → patch, feat → minor, breaking → major) in a `chore(release): Bump version to vX.Y.Z` commit.

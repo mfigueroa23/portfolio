@@ -1,5 +1,13 @@
+# Dependencies allowed to run their build scripts on install (Spec 009, RF-43 to RF-45). An install
+# fails on any build script not listed here, also in CI and in Dependabot PRs, on purpose: approve
+# or deny the new package with `pnpm run approve-builds` and commit this file.
 allowBuilds:
   '@parcel/watcher': true
   esbuild: true
   lmdb: true
   msgpackr-extract: true
+
+# @angular/build 22.2.4 pins vite 8.3.0, affected by GHSA-587h-7wmj-h5pm (fixed in 8.3.3). Remove
+# once @angular/build depends on a fixed vite.
+overrides:
+  vite: 8.3.5
