@@ -43,23 +43,26 @@
 
 ## Phase 2 — New workflows
 
-- [ ] **T06 — CodeQL advanced setup**
+- [x] **T06 — CodeQL advanced setup**
   - **RF:** RF-01, RF-02, RF-03, RF-04, RF-05, RF-08, RF-41
   - **Depends on:** — (can run in parallel with T03–T05)
   - **Scope:** `.github/workflows/codeql.yaml` (PR into `main`, push to `main`, daily `0 7 * * *`, `workflow_dispatch`; matrix `actions` and `javascript-typescript`, `build-mode: none`; minimal permissions; SHA pins with comments) and `.github/codeql/codeql-config.yaml` (`security-extended`, `paths-ignore`). D1, D4.
   - **Done when:** a `workflow_dispatch` run on the branch creates both CodeQL databases without errors (the SARIF upload is only accepted once default setup is off, checked in T14), and the config file lists `security-extended` and the four ignored paths.
+  - Run on 2026-10-25: `actionlint` 1.7.12 is clean; `github/codeql-action` pinned at v4.38.3 (versions at least two weeks old). A `workflow_dispatch` only works once the workflow is on `main`, so the GitHub run is checked on the PR (T14).
 
-- [ ] **T07 — SCA lockfile workflow**
+- [x] **T07 — SCA lockfile workflow**
   - **RF:** RF-26, RF-27, RF-28, RF-29, RF-30, RF-41
   - **Depends on:** T03
   - **Scope:** `.github/workflows/sca.yaml`: PR into `main`, daily `30 7 * * *`, `workflow_dispatch`; job `Lockfile Scan` without install (D1): pinned Grype download, `grype file:pnpm-lock.yaml` to JSON and SARIF (D4), `sca-gate.mjs`, `upload-sarif` (`category: sca-lockfile`, `if: always()`, skipped for forks). Permissions `contents: read`, `security-events: write`.
   - **Done when:** a `workflow_dispatch` run on the branch passes and its summary shows the findings table (or "no findings") from `sca-gate.mjs`.
+  - Run on 2026-10-25: `actionlint` is clean; Grype v0.120.1 run locally with `file:pnpm-lock.yaml` and `sca-gate.mjs` exits 1: the current lockfile has 15 blocking findings in 11 packages (`dompurify` via mermaid, `@angular/router`, `vite`, `undici`, `zod`, `body-parser`, `piscina`, `source-map-js`, `@modelcontextprotocol/sdk`), to be resolved before T14. The GitHub run is checked on the PR (T14).
 
-- [ ] **T08 — Dependabot bump workflow**
+- [x] **T08 — Dependabot bump workflow**
   - **RF:** RF-18, RF-20, RF-21, RF-22, RF-23, RF-24, RF-25, RF-41, RF-42
   - **Depends on:** T02, T04
   - **Scope:** `.github/workflows/dependabot-bump.yaml`: job `request` on `pull_request` (opened, synchronize, reopened) for PRs authored by `dependabot[bot]` and not pushed by the App, `actions: write` only, no checkout, `gh workflow run dependabot-bump.yaml --ref main -f pr=<n>` (D2); job `bump` on `workflow_dispatch`, `push` to `main` (`paths: package.json`) and hourly `schedule`: checkout `main`, `actions/create-github-app-token`, `node scripts/dependabot-bump.mjs` (D3). `concurrency: dependabot-bump`, no cancel.
   - **Done when:** a manual `workflow_dispatch` with no open Dependabot PRs ends green reporting zero PRs, and `grep -n 'secrets\.' .github/workflows/dependabot-bump.yaml` matches only inside the `bump` job.
+  - Run on 2026-10-25: `actionlint` (with shellcheck) is clean; the script rejects a missing token or a bad `--pr` with a one-line error; `secrets.` appears only in the `bump` job. The dispatch and the bump are checked after merging (T18), since `workflow_dispatch` needs the workflow on `main`.
 
 ## Phase 3 — Integration with the existing pipeline
 

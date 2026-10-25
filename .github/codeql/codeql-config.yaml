@@ -1,0 +1,12 @@
+# CodeQL advanced setup (Spec 009, RF-01 and RF-08): security-extended queries over the sources,
+# without build output or installed dependencies.
+name: 'Portfolio CodeQL'
+
+queries:
+  - uses: security-extended
+
+paths-ignore:
+  - dist
+  - node_modules
+  - .angular
+  - coverage
