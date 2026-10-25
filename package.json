@@ -10,7 +10,8 @@
     "start": "node scripts/ng.mjs serve",
     "build": "node scripts/ng.mjs build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "approve-builds": "pnpm approve-builds"
   },
   "license": "MIT",
   "type": "module",

@@ -66,23 +66,26 @@
 
 ## Phase 3 — Integration with the existing pipeline
 
-- [ ] **T09 — Scan, publish and SBOM in `release.yaml`**
+- [x] **T09 — Scan, publish and SBOM in `release.yaml`**
   - **RF:** RF-16, RF-31, RF-32, RF-33, RF-34, RF-35, RF-40, RF-41, RF-42
   - **Depends on:** T03
-  - **Scope:** `package` job: `registry:2` service, Buildx `network=host`, builds pushed to `localhost:5000` (D7); Grype per image and platform with `GRYPE_REGISTRY_INSECURE_USE_HTTP=true`; `sca-gate.mjs` over the four reports before `docker/login-action`; `upload-sarif` per image and platform; `imagetools create` to the three Docker Hub tags; `digest`/`ssr-digest` outputs from `imagetools inspect`; Syft SPDX SBOMs per platform uploaded as `portfolio-<version>-sbom` and `portfolio-ssr-<version>-sbom` (D8); `security-events: write` on this job only; version comments on all pins. `verify` and `deploy` unchanged.
-  - **Done when:** in the YAML, `docker/login-action` and `imagetools create` come after the gate step and `deploy` still reads `needs.package.outputs.digest`/`ssr-digest`; E11 passes locally (Grype on an old `node` image + `sca-gate.mjs` exits 1).
+  - **Scope:** `package` job: `registry:2` service, Buildx `network=host`, builds pushed to `localhost:5000` (D7); Grype per image and platform with `GRYPE_REGISTRY_INSECURE_USE_HTTP=true`; `sca-gate.mjs` over the four reports before anything is pushed to Docker Hub; `upload-sarif` per image and platform; `imagetools create` to the three Docker Hub tags; `digest`/`ssr-digest` outputs from `imagetools inspect`; Syft SPDX SBOMs per platform uploaded as `portfolio-<version>-sbom` and `portfolio-ssr-<version>-sbom` (D8); `security-events: write` on this job only; version comments on all pins. `verify` and `deploy` unchanged.
+  - **Done when:** in the YAML, `imagetools create` (the only push to Docker Hub) comes after the gate step and `deploy` still reads `needs.package.outputs.digest`/`ssr-digest`; E11 passes locally (Grype on an old `node` image + `sca-gate.mjs` exits 1).
+  - Run on 2026-10-25: `actionlint` is clean; E11 passes (Grype on `node:20.0.0-alpine` gives 88 blocking findings and `sca-gate.mjs` exits 1). Locally, with `registry:3` and a Buildx builder with `network=host` and the inline HTTP config, `imagetools create` from the local registry keeps the digest, Grype scans it per platform with `GRYPE_REGISTRY_INSECURE_USE_HTTP`, and Syft names the SBOM `<user>/portfolio:<version>` with the index digest. `docker/login-action` stays before the builds for quota-backed base-image pulls; the only push to Docker Hub is `imagetools create`, after the gate. Scanning the images built from the current Dockerfile gives 1 blocking finding in `static` (`brotli-libs`) and 4 in `ssr` (`undici`, `brace-expansion` in the npm bundled with `node:26-alpine`), to be resolved before T17.
 
-- [ ] **T10 — Dependabot config and base-image digests**
+- [x] **T10 — Dependabot config and base-image digests**
   - **RF:** RF-10, RF-11, RF-12, RF-13, RF-14, RF-15, RF-16, RF-17
   - **Depends on:** T01
   - **Scope:** `.github/dependabot.yml` for `npm`, `github-actions`, `docker` (weekly Monday 06:00 `America/Santiago`, `<eco>-minor-patch` groups, literal `build(deps)`/`ci(deps)` prefixes incl. `prefix-development`, labels, no auto-merge; D9, D10, D11 as resolved in T01). `Dockerfile`: every `FROM` pinned as `tag@sha256:…` (D9).
   - **Done when:** the Dependabot "config file" check on the repo's dependency graph shows no errors for `dependabot.yml`, `grep -c '@sha256:' Dockerfile` is 5, and `docker build --target static .` and `docker build --target ssr .` succeed.
+  - Run on 2026-10-25: `grep -c @sha256: Dockerfile` is 5; `docker build --target static` and `--target ssr` succeed; the keys of `dependabot.yml` exist in the SchemaStore schema. GitHub only validates `dependabot.yml` from `main`, so the dependency-graph check moves to T18.
 
-- [ ] **T11 — Build-script approval command**
+- [x] **T11 — Build-script approval command**
   - **RF:** RF-43, RF-44, RF-45
   - **Depends on:** — (can run in parallel with T03–T10)
   - **Scope:** `package.json` script `"approve-builds": "pnpm approve-builds"` (D12); comment in `pnpm-workspace.yaml` above `allowBuilds`; `AGENTS.md` Commands (`node --test scripts/`, `pnpm run approve-builds`) and closing checklist line for `node --test scripts/`.
   - **Done when:** `pnpm run approve-builds --help` prints pnpm's `approve-builds` usage, `pnpm install --frozen-lockfile` finishes with no build-approval error, and `AGENTS.md` lists both commands.
+  - Run on 2026-10-25: `pnpm run approve-builds --help` prints pnpm's usage; `pnpm install --frozen-lockfile` passes with the four approved builds. In a scratch project, a package with an unapproved build script fails with `ERR_PNPM_IGNORED_BUILDS` naming it, `pnpm approve-builds <pkg>` adds it to `allowBuilds` keeping the file's comments, and the install passes.
 
 ## Phase 4 — Quality gate and version
 

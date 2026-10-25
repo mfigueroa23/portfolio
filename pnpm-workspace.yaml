@@ -1,3 +1,6 @@
+# Dependencies allowed to run their build scripts on install (Spec 009, RF-43 to RF-45). An install
+# fails on any build script not listed here, also in CI and in Dependabot PRs, on purpose: approve
+# or deny the new package with `pnpm run approve-builds` and commit this file.
 allowBuilds:
   '@parcel/watcher': true
   esbuild: true
