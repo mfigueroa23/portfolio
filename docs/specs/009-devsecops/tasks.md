@@ -20,23 +20,26 @@
 
 ## Phase 1 — Scripts
 
-- [ ] **T03 — SCA gate script and exceptions file**
+- [x] **T03 — SCA gate script and exceptions file**
   - **RF:** RF-28, RF-29, RF-30, RF-33, RF-36, RF-37, RF-38
   - **Depends on:** — (can run in parallel with T01, T02, T04)
   - **Scope:** `scripts/sca-gate.mjs` (`validateExceptions`, `classify`, `summary`, CLI with `--report` repeatable, `--exceptions`, `--title`, `$GITHUB_STEP_SUMMARY`; D5), `scripts/sca-gate.test.mjs` with `node:test`, and `.github/sca-exceptions.json` as `[]`. Standard library only.
   - **Done when:** `node --test scripts/sca-gate.test.mjs` passes U-SG-1 to U-SG-11.
+  - Run on 2026-10-25: `node --test scripts/sca-gate.test.mjs` passes U-SG-1 to U-SG-11 (11 tests); `.github/sca-exceptions.json` starts as `[]`. `--title` names the `--report` that follows it.
 
-- [ ] **T04 — Dependabot bump script**
+- [x] **T04 — Dependabot bump script**
   - **RF:** RF-18, RF-19, RF-20, RF-21, RF-22, RF-23, RF-24, RF-25
   - **Depends on:** — (can run in parallel with T01–T03)
   - **Scope:** `scripts/dependabot-bump.mjs`: pure `nextPatch`, `setVersion` (line edit, D6), `isBumpCommit`, `decide`; side-effect part with `git`/`gh` via `execFileSync` only (no `pnpm`/`npm`, D1): list open `app/dependabot` PRs or `--pr N`, temp clone, drop bump commits, rebase onto `origin/main`, commit, `--force-with-lease`, `Version bump` commit status, conflict comment. `scripts/dependabot-bump.test.mjs`.
-  - **Done when:** `node --test scripts/dependabot-bump.test.mjs` passes U-DB-1 to U-DB-9, and `grep -nE "pnpm|npm " scripts/dependabot-bump.mjs` finds no command execution.
+  - **Done when:** `node --test scripts/dependabot-bump.test.mjs` passes U-DB-1 to U-DB-12, and `grep -nE "pnpm|npm " scripts/dependabot-bump.mjs` finds no command execution.
+  - Run on 2026-10-25: `node --test scripts/dependabot-bump.test.mjs` passes U-DB-1 to U-DB-12 (12 tests; U-DB-10 to U-DB-12 added to the plan to run `rebump` against local bare repos); the script only executes `git` and `gh`.
 
-- [ ] **T05 — Run script tests in `test.yaml`**
+- [x] **T05 — Run script tests in `test.yaml`**
   - **RF:** RF-16, RF-39, RF-44
   - **Depends on:** T03, T04
   - **Scope:** `test.yaml`: `Script Tests` step (`node --test scripts/`) after `Run Tests`; a `# vX.Y.Z` comment on every pinned action, resolved from the SHA (D9). Triggers, install and other steps unchanged.
   - **Done when:** `node --test scripts/` passes locally (U-SG-_, U-DB-_), and the `Portfolio Tests` run on the branch shows the `Script Tests` step green.
+  - Run on 2026-10-25: `node --test scripts/` passes 23 tests locally; pins annotated as `actions/checkout` v7.0.1 and `pnpm/setup` v3.0.0. The `Script Tests` step on GitHub is checked when the branch is pushed (T14).
 
 ## Phase 2 — New workflows
 
