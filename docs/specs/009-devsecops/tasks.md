@@ -89,11 +89,12 @@
 
 ## Phase 4 — Quality gate and version
 
-- [ ] **T12 — Closing quality gate**
+- [x] **T12 — Closing quality gate**
   - **RF:** RF-39, RF-41, RF-42
   - **Depends on:** T05–T11
   - **Scope:** Run the `AGENTS.md` checklist and the E14 review over every workflow.
   - **Done when:** `pnpm test --watch=false`, `pnpm build` (no exceeded budgets), `scripts/check-ssr-csp.sh` and `node --test scripts/` pass; `pnpm exec prettier --check .` is clean; E14 holds (every workflow has `permissions`, every third-party action is SHA-pinned, no `secrets.` in a job reachable from a Dependabot `pull_request` run).
+  - Run on 2026-10-25: 62 files and 596 tests pass; `node --test scripts/` passes 23 tests; `pnpm build` has no exceeded budget (initial total 393.38 kB; the 9 CommonJS warnings from mermaid are the same as on `main`); the CSP check covers every inline script; `actionlint` is clean. `prettier --check` is clean on every file this branch changes except `pnpm-lock.yaml`, which pnpm generates and was not Prettier-clean on `main` either; the 6 other files `prettier --check .` flags are untouched by this branch. E14 holds: every workflow declares `permissions`, every action is SHA-pinned, and the only secret reachable in a PR-triggered workflow is `BUMP_APP_PRIVATE_KEY` in the `bump` job, which never runs on `pull_request`.
 
 - [ ] **T13 — Bump version to 4.5.0**
   - **RF:** —
