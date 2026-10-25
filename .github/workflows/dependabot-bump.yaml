@@ -4,8 +4,9 @@ name: 'Dependabot Version Bump'
 #
 # A run triggered by Dependabot holds no secret (RF-42): `request` only dispatches this workflow
 # on main (plan D2). `bump` then runs main's workflow and scripts, never the PR's code, with the
-# bump App's token, whose pushes do trigger the PR checks (plan D3). It also runs when main's
-# package.json changes (RF-20) and hourly, in case a dispatch never arrived.
+# bump App's token, whose commits do trigger the PR checks (plan D3) and are signed by GitHub,
+# as the `main` ruleset requires (plan D15). It also runs when main's package.json changes
+# (RF-20) and hourly, in case a dispatch never arrived.
 permissions:
   contents: read
 
@@ -78,10 +79,5 @@ jobs:
       - name: 'Bump Versions'
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
           PR_NUMBER: ${{ inputs.pr }}
-        run: |
-          bot_id=$(gh api "/users/${APP_SLUG}%5Bbot%5D" --jq .id)
-          export BUMP_GIT_NAME="${APP_SLUG}[bot]"
-          export BUMP_GIT_EMAIL="${bot_id}+${APP_SLUG}[bot]@users.noreply.github.com"
-          node scripts/dependabot-bump.mjs ${PR_NUMBER:+--pr "$PR_NUMBER"}
+        run: 'node scripts/dependabot-bump.mjs ${PR_NUMBER:+--pr "$PR_NUMBER"}'

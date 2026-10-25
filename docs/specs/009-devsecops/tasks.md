@@ -31,8 +31,9 @@
   - **RF:** RF-18, RF-19, RF-20, RF-21, RF-22, RF-23, RF-24, RF-25
   - **Depends on:** — (can run in parallel with T01–T03)
   - **Scope:** `scripts/dependabot-bump.mjs`: pure `nextPatch`, `setVersion` (line edit, D6), `isBumpCommit`, `decide`; side-effect part with `git`/`gh` via `execFileSync` only (no `pnpm`/`npm`, D1): list open `app/dependabot` PRs or `--pr N`, temp clone, drop bump commits, rebase onto `origin/main`, commit, `--force-with-lease`, `Version bump` commit status, conflict comment. `scripts/dependabot-bump.test.mjs`.
-  - **Done when:** `node --test scripts/dependabot-bump.test.mjs` passes U-DB-1 to U-DB-12, and `grep -nE "pnpm|npm " scripts/dependabot-bump.mjs` finds no command execution.
+  - **Done when:** `node --test scripts/dependabot-bump.test.mjs` passes U-DB-1 to U-DB-15, and `grep -nE "pnpm|npm " scripts/dependabot-bump.mjs` finds no command execution.
   - Run on 2026-10-25: `node --test scripts/dependabot-bump.test.mjs` passes U-DB-1 to U-DB-12 (12 tests; U-DB-10 to U-DB-12 added to the plan to run `rebump` against local bare repos); the script only executes `git` and `gh`.
+  - Reworked on 2026-10-25 for signed commits (plan D15, owner's decision after finding the ruleset requires signatures): `rebump` now works through GitHub's API (ref move, `POST /merges`, `createCommitOnBranch`) and only calls `gh`; `node --test scripts/dependabot-bump.test.mjs` passes U-DB-1 to U-DB-15 (15 tests, U-DB-11 to U-DB-15 against an in-memory fake); the read calls (`head`, `commits`, `file`, `behindBy`) were run against PR #12 and parse the real responses.
 
 - [x] **T05 — Run script tests in `test.yaml`**
   - **RF:** RF-16, RF-39, RF-44
@@ -113,7 +114,7 @@
 - [ ] **T15 — Ruleset on `main`**
   - **RF:** RF-06, RF-07, RF-28
   - **Depends on:** T14
-  - **Scope:** Ruleset on `main` requiring the four checks by the names shown in T14, plus the code scanning rule for CodeQL (security alerts `high_or_higher`, alerts `none`; D4).
+  - **Scope:** The existing `Branch Protection` ruleset on `main` keeps its rules (signed commits included) and gains the checks `Lockfile Scan`, `Analyze (actions)` and `Analyze (javascript-typescript)` next to `Unit Tests`, plus the code scanning rule for CodeQL (security alerts `high_or_higher`, alerts `none`; D4); then it is enabled.
   - **Done when:** `gh api repos/mfigueroa23/portfolio/rulesets` lists the ruleset with the four required checks and the `code_scanning` rule.
 
 - [ ] **T16 — Throwaway-branch checks**

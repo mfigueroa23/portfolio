@@ -1,24 +1,24 @@
 // Keeps every open Dependabot PR one patch version above `main` (Spec 009, RF-18 to RF-25).
 //
 // For each open PR authored by Dependabot (or only `--pr N`), it compares the PR's
-// `package.json` version with `main`'s. When it is not `main` + 1 patch, it rebuilds the branch
-// in a temporary clone: Dependabot's commits are cherry-picked onto `origin/main` without any
-// earlier bump commit, and one `chore(release): Bump version to vX.Y.Z` commit is added on top
-// and force-pushed with a lease on the head it read. A conflict or a rejected push leaves the
-// branch as it was, sets a failed `Version bump` commit status and asks for
-// `@dependabot recreate` in a comment.
+// `package.json` version with `main`'s. When it is not `main` + 1 patch, it rebuilds the top of
+// the branch through GitHub's API, so every commit is signed and verified, as the `main` ruleset
+// requires (plan D15):
+//   1. trailing bump commits are dropped by moving the branch back to the last other commit,
+//      which keeps Dependabot's own signed commits untouched;
+//   2. when the branch is behind, `main` is merged into it (a merge commit made by GitHub);
+//   3. one `chore(release): Bump version to vX.Y.Z` commit is added with createCommitOnBranch.
+// Each write expects the head it read, so a concurrent push is never overwritten. If a step
+// fails, the branch goes back to its original head (when nobody pushed meanwhile), a failed
+// `Version bump` commit status is set and a comment asks for `@dependabot recreate`.
 //
-// It only runs `git` and `gh`: nothing from the PR is installed or executed (plan D1), and
-// `package.json` is edited as text, so no npm lifecycle script runs (plan D6).
+// It only calls `gh`: nothing from the PR is checked out, installed or executed (plan D1), and
+// `package.json` is edited as text (plan D6).
 //
-// Environment: GH_TOKEN (the bump App's token), GITHUB_REPOSITORY (owner/repo),
-// BUMP_GIT_NAME and BUMP_GIT_EMAIL (the App's commit identity).
+// Environment: GH_TOKEN (the bump App's token) and GITHUB_REPOSITORY (owner/repo).
 //
 // Usage: node scripts/dependabot-bump.mjs [--pr <number>]
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
 
 const STATUS_CONTEXT = 'Version bump';
 const DEPENDABOT_LOGINS = new Set(['dependabot[bot]', 'app/dependabot', 'dependabot']);
@@ -47,20 +47,155 @@ export function decide({ author, prVersion, mainVersion }) {
   return prVersion === nextPatch(mainVersion) ? 'noop' : 'rebump';
 }
 
+/**
+ * The commit the branch goes back to (the last one that is not a bump) and how many trailing
+ * bump commits that drops. A bump commit with other commits after it is never dropped, since
+ * that would also drop them.
+ */
+export function trailingBump(commits) {
+  let index = commits.length - 1;
+  while (index >= 0 && isBumpCommit(commits[index].subject)) index--;
+  if (index < 0) throw new Error('the branch has no Dependabot commit to keep');
+  if (commits.slice(0, index).some((commit) => isBumpCommit(commit.subject))) {
+    throw new Error('a commit was added after the version bump; it is left for the owner');
+  }
+  return { keep: commits[index].sha, dropped: commits.length - 1 - index };
+}
+
+/**
+ * Rebuilds the top of the PR branch through `api` (see githubApi) with one bump commit to
+ * `version`; `headSha` is the head the caller read. Returns the new head.
+ */
+export async function rebump(api, pr, headSha, version) {
+  const moved = () => new Error('the branch moved while bumping it, left for the next run');
+  if ((await api.head()) !== headSha) throw moved();
+  const commits = await api.commits();
+  if (commits.at(-1)?.sha !== headSha) throw moved();
+  const { keep } = trailingBump(commits);
+
+  let current = headSha;
+  try {
+    if (keep !== current) {
+      await api.updateRef(keep);
+      current = keep;
+    }
+    if ((await api.behindBy(current)) > 0) {
+      try {
+        current = await api.mergeMain();
+      } catch (error) {
+        throw error.conflict ? new Error('the branch does not merge with main') : error;
+      }
+    }
+    const contents = setVersion(await api.file(current), version);
+    return await api.createCommit({
+      expectedHead: current,
+      message: `chore(release): Bump version to v${version}`,
+      contents,
+    });
+  } catch (error) {
+    // Undo only what this run did: if someone else pushed meanwhile, their head stays.
+    const head = await api.head();
+    if (head !== current) throw moved();
+    if (current !== headSha) await api.updateRef(headSha);
+    throw error;
+  }
+}
+
 const run = (command, args, options = {}) =>
-  execFileSync(command, args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], ...options });
+  execFileSync(command, args, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], ...options });
 
 const gh = (...args) => run('gh', args);
 
-/** Git with the App token sent as a header, so it never appears in argv or remotes. */
-function gitEnv(token) {
-  const basic = Buffer.from(`x-access-token:${token}`).toString('base64');
+/** The GitHub calls rebump needs, for one PR branch. */
+export function githubApi(repo, pr) {
+  const branch = pr.headRefName;
+  const head = () =>
+    gh('api', `repos/${repo}/git/ref/heads/${branch}`, '--jq', '.object.sha').trim();
   return {
-    ...process.env,
-    GIT_CONFIG_COUNT: '1',
-    GIT_CONFIG_KEY_0: 'http.https://github.com/.extraheader',
-    GIT_CONFIG_VALUE_0: `AUTHORIZATION: basic ${basic}`,
-    GIT_TERMINAL_PROMPT: '0',
+    head: async () => head(),
+    commits: async () =>
+      gh(
+        'api',
+        '--paginate',
+        `repos/${repo}/pulls/${pr.number}/commits`,
+        '--jq',
+        '.[] | {sha, subject: (.commit.message | split("\n")[0])}',
+      )
+        .split('\n')
+        .filter(Boolean)
+        .map((line) => JSON.parse(line)),
+    file: async (ref) =>
+      Buffer.from(
+        gh(
+          'api',
+          `repos/${repo}/contents/package.json?ref=${encodeURIComponent(ref)}`,
+          '--jq',
+          '.content',
+        ),
+        'base64',
+      ).toString('utf8'),
+    behindBy: async (sha) =>
+      Number(gh('api', `repos/${repo}/compare/main...${sha}`, '--jq', '.behind_by').trim()),
+    updateRef: async (sha) => {
+      gh(
+        'api',
+        '-X',
+        'PATCH',
+        `repos/${repo}/git/refs/heads/${branch}`,
+        '-f',
+        `sha=${sha}`,
+        '-F',
+        'force=true',
+      );
+    },
+    mergeMain: async () => {
+      try {
+        const sha = gh(
+          'api',
+          `repos/${repo}/merges`,
+          '-f',
+          `base=${branch}`,
+          '-f',
+          'head=main',
+          '-f',
+          `commit_message=Merge branch 'main' into ${branch}`,
+          '--jq',
+          '.sha',
+        ).trim();
+        // 204: nothing to merge after all.
+        return sha || head();
+      } catch (error) {
+        if (String(error.stderr).includes('HTTP 409')) {
+          throw Object.assign(new Error('merge conflict'), { conflict: true });
+        }
+        throw error;
+      }
+    },
+    createCommit: async ({ expectedHead, message, contents }) => {
+      const body = {
+        query:
+          'mutation($input: CreateCommitOnBranchInput!) { createCommitOnBranch(input: $input) { commit { oid } } }',
+        variables: {
+          input: {
+            branch: { repositoryNameWithOwner: repo, branchName: branch },
+            expectedHeadOid: expectedHead,
+            message: { headline: message },
+            fileChanges: {
+              additions: [
+                { path: 'package.json', contents: Buffer.from(contents).toString('base64') },
+              ],
+            },
+          },
+        },
+      };
+      return run(
+        'gh',
+        ['api', 'graphql', '--input', '-', '--jq', '.data.createCommitOnBranch.commit.oid'],
+        {
+          input: JSON.stringify(body),
+        },
+      ).trim();
+    },
   };
 }
 
@@ -89,10 +224,6 @@ function openPullRequests(repo, number) {
   return list.filter((pr) => pr.state === 'OPEN' && !pr.isCrossRepository);
 }
 
-function versionAt(dir, env, ref) {
-  return JSON.parse(run('git', ['show', `${ref}:package.json`], { cwd: dir, env })).version;
-}
-
 function statusOf(repo, sha) {
   const statuses = JSON.parse(gh('api', `repos/${repo}/commits/${sha}/status`)).statuses ?? [];
   return statuses.find((status) => status.context === STATUS_CONTEXT)?.state;
@@ -111,73 +242,14 @@ function setStatus(repo, sha, state, description) {
   );
 }
 
-/** Rebuilds the PR branch on origin/main with one bump commit; returns the pushed SHA. */
-export function rebump(dir, env, pr, version) {
-  const git = (...args) => run('git', args, { cwd: dir, env });
-  const range = git('log', '--reverse', '--format=%H %P%x09%s', `origin/main..${pr.headRefOid}`);
-  const commits = range
-    .split('\n')
-    .filter(Boolean)
-    .map((line) => {
-      const [hashes, subject] = line.split('\t');
-      const [sha, ...parents] = hashes.split(' ');
-      return { sha, parents, subject };
-    })
-    .filter((commit) => !isBumpCommit(commit.subject));
-  if (commits.length === 0) throw new Error('the branch has no Dependabot commit to keep');
-  if (commits.some((commit) => commit.parents.length > 1)) {
-    throw new Error('the branch has a merge commit');
-  }
-
-  git('checkout', '--quiet', '-B', 'bump', 'origin/main');
-  for (const { sha } of commits) {
-    try {
-      git('cherry-pick', '--allow-empty', sha);
-    } catch {
-      git('cherry-pick', '--abort');
-      throw new Error(`commit ${sha.slice(0, 7)} does not apply on main`);
-    }
-  }
-
-  const file = join(dir, 'package.json');
-  writeFileSync(file, setVersion(readFileSync(file, 'utf8'), version));
-  git(
-    'commit',
-    '--quiet',
-    '--only',
-    'package.json',
-    '-m',
-    `chore(release): Bump version to v${version}`,
-  );
-  try {
-    git(
-      'push',
-      '--quiet',
-      `--force-with-lease=${pr.headRefName}:${pr.headRefOid}`,
-      'origin',
-      `HEAD:${pr.headRefName}`,
-    );
-  } catch {
-    throw new Error('the push was rejected (the branch changed or the App cannot push to it)');
-  }
-  return git('rev-parse', 'HEAD').trim();
-}
-
-function processPullRequest(repo, dir, env, pr) {
-  const git = (...args) => run('git', args, { cwd: dir, env });
-  git(
-    'fetch',
-    '--quiet',
-    'origin',
-    'main',
-    `+refs/heads/${pr.headRefName}:refs/remotes/origin/${pr.headRefName}`,
-  );
-  const head = git('rev-parse', `origin/${pr.headRefName}`).trim();
+async function processPullRequest(repo, pr) {
+  const api = githubApi(repo, pr);
+  const head = await api.head();
   if (head !== pr.headRefOid)
     return `#${pr.number}: the branch moved while reading it, left for the next run`;
 
-  const mainVersion = versionAt(dir, env, 'origin/main');
-  const prVersion = versionAt(dir, env, head);
+  const mainVersion = JSON.parse(await api.file('main')).version;
+  const prVersion = JSON.parse(await api.file(head)).version;
   const action = decide({ author: pr.author.login, prVersion, mainVersion });
   if (action === 'skip') return `#${pr.number}: not authored by Dependabot, skipped`;
 
@@ -188,14 +260,14 @@ function processPullRequest(repo, dir, env, pr) {
   }
 
   try {
-    const pushed = rebump(dir, env, pr, version);
+    const pushed = await rebump(api, pr, head, version);
     setStatus(repo, pushed, 'success', `Version ${version}`);
     return `#${pr.number}: ${prVersion} → ${version}`;
   } catch (error) {
-    git('reset', '--quiet', '--hard');
+    const message = String(error.message).split('\n')[0];
     // One failed status and one comment per head, not one per run.
     if (statusOf(repo, head) !== 'failure') {
-      setStatus(repo, head, 'failure', `Cannot bump to ${version}: ${error.message}`.slice(0, 140));
+      setStatus(repo, head, 'failure', `Cannot bump to ${version}: ${message}`.slice(0, 140));
       gh(
         'pr',
         'comment',
@@ -203,55 +275,40 @@ function processPullRequest(repo, dir, env, pr) {
         '--repo',
         repo,
         '--body',
-        `The version bump to \`v${version}\` could not be applied: ${error.message}. ` +
+        `The version bump to \`v${version}\` could not be applied: ${message}. ` +
           'Comment `@dependabot recreate` to rebuild this PR on top of `main`; the bump is added again afterwards.',
       );
     }
-    throw new Error(`#${pr.number}: ${error.message}`);
+    throw new Error(`#${pr.number}: ${message}`);
   }
 }
 
-function main(argv) {
+async function main(argv) {
   const prIndex = argv.indexOf('--pr');
   const number = prIndex >= 0 ? Number(argv[prIndex + 1]) : undefined;
   if (prIndex >= 0 && !Number.isInteger(number)) throw new Error('--pr needs a PR number');
-  const { GH_TOKEN: token, GITHUB_REPOSITORY: repo, BUMP_GIT_NAME, BUMP_GIT_EMAIL } = process.env;
-  if (!token || !repo || !BUMP_GIT_NAME || !BUMP_GIT_EMAIL) {
-    throw new Error('GH_TOKEN, GITHUB_REPOSITORY, BUMP_GIT_NAME and BUMP_GIT_EMAIL are required');
-  }
+  const { GH_TOKEN: token, GITHUB_REPOSITORY: repo } = process.env;
+  if (!token || !repo) throw new Error('GH_TOKEN and GITHUB_REPOSITORY are required');
 
   const pullRequests = openPullRequests(repo, number);
   console.log(`${pullRequests.length} open Dependabot PR(s)`);
-  if (pullRequests.length === 0) return 0;
-
-  const dir = mkdtempSync(join(tmpdir(), 'dependabot-bump-'));
-  const env = gitEnv(token);
   let failures = 0;
-  try {
-    run('git', ['clone', '--quiet', '--no-checkout', `https://github.com/${repo}.git`, dir], {
-      env,
-    });
-    run('git', ['config', 'user.name', BUMP_GIT_NAME], { cwd: dir });
-    run('git', ['config', 'user.email', BUMP_GIT_EMAIL], { cwd: dir });
-    for (const pr of pullRequests) {
-      try {
-        console.log(processPullRequest(repo, dir, env, pr));
-      } catch (error) {
-        failures++;
-        console.error(error.message.split('\n')[0]);
-      }
+  for (const pr of pullRequests) {
+    try {
+      console.log(await processPullRequest(repo, pr));
+    } catch (error) {
+      failures++;
+      console.error(String(error.message).split('\n')[0]);
     }
-  } finally {
-    rmSync(dir, { recursive: true, force: true });
   }
   return failures > 0 ? 1 : 0;
 }
 
 if (import.meta.main) {
   try {
-    process.exitCode = main(process.argv.slice(2));
+    process.exitCode = await main(process.argv.slice(2));
   } catch (error) {
-    console.error(`dependabot-bump: ${error.message.split('\n')[0]}`);
+    console.error(`dependabot-bump: ${String(error.message).split('\n')[0]}`);
     process.exitCode = 1;
   }
 }

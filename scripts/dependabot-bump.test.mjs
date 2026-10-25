@@ -1,12 +1,16 @@
-// Unit tests of dependabot-bump.mjs (Spec 009, plan U-DB-1…U-DB-12). Run with `node --test scripts/`.
+// Unit tests of dependabot-bump.mjs (Spec 009, plan U-DB-1…U-DB-15). Run with `node --test scripts/`.
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
 
-import { decide, isBumpCommit, nextPatch, rebump, setVersion } from './dependabot-bump.mjs';
+import {
+  decide,
+  isBumpCommit,
+  nextPatch,
+  rebump,
+  setVersion,
+  trailingBump,
+} from './dependabot-bump.mjs';
 
 const PACKAGE_JSON = readFileSync(new URL('../package.json', import.meta.url), 'utf8');
 const CURRENT = JSON.parse(PACKAGE_JSON).version;
@@ -93,108 +97,136 @@ describe('isBumpCommit', () => {
   });
 });
 
-/**
- * A bare `origin` with `main` at 1.0.0 and a Dependabot-like branch (one dependency commit and a
- * stale bump commit), plus a working clone with every ref fetched, as the script sees it.
- */
-function fixture() {
-  const root = mkdtempSync(join(tmpdir(), 'dependabot-bump-test-'));
-  const git = (cwd, ...args) => execFileSync('git', args, { cwd, encoding: 'utf8' }).trim();
-  const origin = join(root, 'origin.git');
-  const seed = join(root, 'seed');
-  git(root, 'init', '--quiet', '--bare', '--initial-branch=main', origin);
-  git(root, 'clone', '--quiet', origin, seed);
-  for (const [key, value] of [
-    ['user.name', 'Test'],
-    ['user.email', 'test@example.com'],
-  ]) {
-    git(seed, 'config', key, value);
-  }
-  const write = (name, text) => writeFileSync(join(seed, name), text);
-  const pkg = (version, dep) =>
-    `{\n  "name": "x",\n  "version": "${version}",\n  "dependencies": {\n    "dep": "${dep}"\n  }\n}\n`;
-  const commit = (message) => {
-    git(seed, 'add', '-A');
-    git(seed, 'commit', '--quiet', '-m', message);
-  };
-  write('package.json', pkg('1.0.0', '^1.0.0'));
-  write('README.md', 'main\n');
-  commit('feat: Initial');
-  git(seed, 'push', '--quiet', 'origin', 'main');
-  git(seed, 'checkout', '--quiet', '-b', 'dependabot/npm/dep-2.0.0');
-  write('package.json', pkg('1.0.0', '^2.0.0'));
-  commit('build(deps): bump dep from 1.0.0 to 2.0.0');
-  write('package.json', pkg('1.0.1', '^2.0.0'));
-  commit('chore(release): Bump version to v1.0.1');
-  git(seed, 'push', '--quiet', 'origin', 'HEAD');
-  git(seed, 'checkout', '--quiet', 'main');
+const pkg = (version) => `{\n  "name": "x",\n  "version": "${version}",\n  "dependencies": {}\n}\n`;
+const DEP = { sha: 'dep1', subject: 'build(deps): bump dep from 1.0.0 to 2.0.0' };
+const BUMP = { sha: 'bump1', subject: 'chore(release): Bump version to v1.0.1' };
+const PR = { number: 7, headRefName: 'dependabot/npm/dep-2.0.0' };
 
-  const work = join(root, 'work');
-  git(root, 'clone', '--quiet', '--no-checkout', origin, work);
-  for (const [key, value] of [
-    ['user.name', 'Bump'],
-    ['user.email', 'bump@example.com'],
-  ]) {
-    git(work, 'config', key, value);
-  }
-  const pr = {
-    number: 1,
-    headRefName: 'dependabot/npm/dep-2.0.0',
-    headRefOid: git(seed, 'rev-parse', 'dependabot/npm/dep-2.0.0'),
+/**
+ * An in-memory GitHub for one PR branch: commits, the branch head, files by ref and how far the
+ * branch is behind main. Every write is recorded in `calls`, and `fail` makes a write throw.
+ */
+function fakeApi({ commits, behindBy = 0, files = {}, fail = {} }) {
+  const state = { head: commits.at(-1).sha, calls: [] };
+  const api = {
+    state,
+    commits: async () => commits,
+    head: async () => state.head,
+    file: async (ref) => files[ref] ?? pkg('1.0.0'),
+    behindBy: async () => behindBy,
+    updateRef: async (sha) => {
+      state.calls.push(['updateRef', sha]);
+      if (fail.updateRef) throw new Error(fail.updateRef);
+      state.head = sha;
+    },
+    mergeMain: async () => {
+      state.calls.push(['mergeMain', state.head]);
+      if (fail.mergeMain) throw Object.assign(new Error(fail.mergeMain), { conflict: true });
+      state.head = 'merge1';
+      return 'merge1';
+    },
+    createCommit: async ({ expectedHead, message, contents }) => {
+      state.calls.push(['createCommit', expectedHead, message, contents]);
+      if (fail.createCommit) {
+        state.head = 'someone-else';
+        throw new Error(fail.createCommit);
+      }
+      state.head = 'new1';
+      return 'new1';
+    },
   };
-  return { git, seed, work, pr, write, pkg, commit, origin };
+  return api;
 }
 
-describe('rebump', () => {
-  it('U-DB-10: rebuilds the branch on main with one bump commit, dropping the stale one', () => {
-    const { git, seed, work, pr, write, pkg, commit } = fixture();
-    // main moves to 1.0.1 (another Dependabot PR merged) and gains an unrelated change.
-    write('package.json', pkg('1.0.1', '^1.0.0'));
-    write('README.md', 'main moved\n');
-    commit('chore(release): Bump version to v1.0.1');
-    git(seed, 'push', '--quiet', 'origin', 'main');
-    git(work, 'fetch', '--quiet', 'origin');
-
-    const pushed = rebump(work, process.env, pr, '1.0.2');
-    const subjects = git(work, 'log', '--format=%s', `origin/main..${pushed}`).split('\n');
-    assert.deepEqual(subjects, [
-      'chore(release): Bump version to v1.0.2',
-      'build(deps): bump dep from 1.0.0 to 2.0.0',
-    ]);
-    git(work, 'fetch', '--quiet', 'origin');
-    assert.equal(git(work, 'rev-parse', `origin/${pr.headRefName}`), pushed);
-    const packageJson = JSON.parse(git(work, 'show', `${pushed}:package.json`));
-    assert.equal(packageJson.version, '1.0.2');
-    assert.equal(packageJson.dependencies.dep, '^2.0.0');
-    assert.equal(git(work, 'show', `${pushed}:README.md`), 'main moved');
-  });
-
-  it('U-DB-11: pushes nothing when a Dependabot commit does not apply on main', () => {
-    const { git, seed, work, pr, write, pkg, commit } = fixture();
-    write('package.json', pkg('1.1.0', '^1.5.0'));
-    commit('build(deps): bump dep from 1.0.0 to 1.5.0');
-    git(seed, 'push', '--quiet', 'origin', 'main');
-    git(work, 'fetch', '--quiet', 'origin');
-
-    assert.throws(() => rebump(work, process.env, pr, '1.1.1'), /does not apply on main/);
-    git(work, 'fetch', '--quiet', 'origin');
-    assert.equal(git(work, 'rev-parse', `origin/${pr.headRefName}`), pr.headRefOid);
-  });
-
-  it('U-DB-12: pushes nothing when the branch moved after it was read (lease)', () => {
-    const { git, seed, work, pr, write, commit } = fixture();
-    git(work, 'fetch', '--quiet', 'origin');
-    git(seed, 'checkout', '--quiet', pr.headRefName);
-    write('extra.txt', 'pushed meanwhile\n');
-    commit('build(deps): bump other');
-    git(seed, 'push', '--quiet', 'origin', 'HEAD');
-
-    assert.throws(() => rebump(work, process.env, pr, '1.0.1'), /push was rejected/);
-    assert.notEqual(git(seed, 'rev-parse', 'HEAD'), pr.headRefOid);
-    git(work, 'fetch', '--quiet', 'origin');
-    assert.equal(
-      git(work, 'rev-parse', `origin/${pr.headRefName}`),
-      git(seed, 'rev-parse', 'HEAD'),
+describe('trailingBump', () => {
+  it('U-DB-10: keeps the last non-bump commit and drops only trailing bump commits', () => {
+    assert.deepEqual(trailingBump([DEP, BUMP]), { keep: 'dep1', dropped: 1 });
+    assert.deepEqual(trailingBump([DEP]), { keep: 'dep1', dropped: 0 });
+    assert.throws(
+      () =>
+        trailingBump([
+          DEP,
+          BUMP,
+          { sha: 'own1', subject: 'build(deps): Approve the build script of x' },
+        ]),
+      /a commit was added after the version bump/,
     );
+    assert.throws(() => trailingBump([BUMP]), /no Dependabot commit/);
+    // A merge of main left by an earlier bump is kept like any other non-bump commit.
+    assert.deepEqual(trailingBump([DEP, { sha: 'merge1', subject: "Merge branch 'main'" }, BUMP]), {
+      keep: 'merge1',
+      dropped: 1,
+    });
+  });
+});
+
+describe('rebump', () => {
+  it('U-DB-11: drops the stale bump, merges main and adds one signed bump commit', async () => {
+    const api = fakeApi({
+      commits: [DEP, BUMP],
+      behindBy: 2,
+      files: { merge1: pkg('1.0.1') },
+    });
+    const sha = await rebump(api, PR, 'bump1', '1.0.2');
+    assert.equal(sha, 'new1');
+    assert.deepEqual(
+      api.state.calls.map((call) => call.slice(0, 2)),
+      [
+        ['updateRef', 'dep1'],
+        ['mergeMain', 'dep1'],
+        ['createCommit', 'merge1'],
+      ],
+    );
+    const [, , message, contents] = api.state.calls[2];
+    assert.equal(message, 'chore(release): Bump version to v1.0.2');
+    assert.equal(contents, pkg('1.0.2'));
+  });
+
+  it('U-DB-12: an up-to-date branch without a bump only gets the bump commit', async () => {
+    const api = fakeApi({ commits: [DEP], behindBy: 0, files: { dep1: pkg('1.0.0') } });
+    assert.equal(await rebump(api, PR, 'dep1', '1.0.1'), 'new1');
+    assert.deepEqual(
+      api.state.calls.map((call) => call.slice(0, 2)),
+      [['createCommit', 'dep1']],
+    );
+  });
+
+  it('U-DB-13: a merge conflict restores the original head and adds no commit', async () => {
+    const api = fakeApi({
+      commits: [DEP, BUMP],
+      behindBy: 1,
+      fail: { mergeMain: 'Merge conflict' },
+    });
+    await assert.rejects(rebump(api, PR, 'bump1', '1.0.2'), /does not merge with main/);
+    assert.equal(api.state.head, 'bump1');
+    assert.deepEqual(
+      api.state.calls.map((call) => call[0]),
+      ['updateRef', 'mergeMain', 'updateRef'],
+    );
+  });
+
+  it('U-DB-14: pushes nothing when the branch moved, and never overwrites another push', async () => {
+    const moved = fakeApi({ commits: [DEP, BUMP] });
+    await assert.rejects(rebump(moved, PR, 'other-head', '1.0.2'), /the branch moved/);
+    assert.deepEqual(moved.state.calls, []);
+
+    const raced = fakeApi({
+      commits: [DEP],
+      fail: { createCommit: 'Expected branch to point to "dep1"' },
+    });
+    await assert.rejects(rebump(raced, PR, 'dep1', '1.0.1'), /the branch moved/);
+    assert.equal(raced.state.head, 'someone-else');
+    assert.deepEqual(
+      raced.state.calls.map((call) => call[0]),
+      ['createCommit'],
+    );
+  });
+
+  it('U-DB-15: a bump commit followed by another commit is never reset', async () => {
+    const api = fakeApi({
+      commits: [DEP, BUMP, { sha: 'own1', subject: 'build(deps): Approve the build script of x' }],
+    });
+    await assert.rejects(rebump(api, PR, 'own1', '1.0.2'), /after the version bump/);
+    assert.deepEqual(api.state.calls, []);
   });
 });
