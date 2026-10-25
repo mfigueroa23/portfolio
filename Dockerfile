@@ -45,6 +45,10 @@ RUN origin() { perl -e '$ARGV[0] =~ m{^(https?://[A-Za-z0-9.-]+(?::[0-9]+)?)(?:/
 # a sidecar of the `static` container in the same pod; nginx proxies those paths to port 4000.
 FROM node:26-alpine@sha256:40cd011b55415bc894e45b02fdd5a5dfde056921b7d23a64c74f80497af48797 AS ssr
 ENV NODE_ENV=production PORT=4000
+# Alpine fixes published after the base image, and no npm/npx: the server only runs `node`, and
+# the bundled npm only adds packages to scan and patch (Spec 009, release image scan).
+RUN apk upgrade --no-cache \
+ && rm -rf /usr/local/lib/node_modules /usr/local/bin/npm /usr/local/bin/npx
 WORKDIR /app
 COPY --from=build --chown=root:root /app/dist/devsonic.cl/server ./server
 COPY --from=build --chown=root:root /app/dist/devsonic.cl/browser ./browser
@@ -57,7 +61,9 @@ CMD ["node", "server/server.mjs"]
 # Target `static` (default, last stage): unprivileged nginx serving the prerendered build and
 # proxying the server-rendered paths to the `ssr` sidecar.
 FROM nginx:stable-alpine@sha256:47928bf67eb62a1863cb08d9ecb52d3e704304ba614eaee17884204677702951 AS static
-RUN rm -rf /etc/nginx/conf.d/* /etc/nginx/templates /usr/share/nginx/html/*
+# Alpine fixes published after the base image (Spec 009, release image scan).
+RUN apk upgrade --no-cache \
+ && rm -rf /etc/nginx/conf.d/* /etc/nginx/templates /usr/share/nginx/html/*
 COPY --from=csp /work/nginx.conf /etc/nginx/nginx.conf
 COPY --from=csp --chown=root:root /site /usr/share/nginx/html
 USER nginx
