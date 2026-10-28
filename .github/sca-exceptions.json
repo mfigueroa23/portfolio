@@ -1,1 +1,7 @@
-[]
+[
+  {
+    "id": "CVE-2025-60876",
+    "reason": "Alpine ships no fixed busybox in any branch (edge included); wget runs only in the HEALTHCHECK against a fixed localhost URL, so no untrusted input reaches it (Spec 010).",
+    "expires": "2027-01-26"
+  }
+]
