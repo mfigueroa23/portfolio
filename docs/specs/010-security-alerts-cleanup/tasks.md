@@ -16,7 +16,7 @@ changes GitHub's state, because that change is outward-facing.
   - **Scope:** On `feature/security-alerts`, commit `docs/specs/010-security-alerts-cleanup/` (`spec.md` and `plan.md` as Approved, `tasks.md`) as `docs(specs): Add spec and plan 010` (D8).
   - **Done when:** `git log -1 --format=%s` prints `docs(specs): Add spec and plan 010`, and `git status --short` is empty.
 
-- [ ] **T02 — Refresh `fast-uri` in the lockfile**
+- [x] **T02 — Refresh `fast-uri` in the lockfile**
   - **RF:** RF-01, RF-02
   - **Depends on:** T01
   - **Scope:** `pnpm update fast-uri --lockfile-only`, then `pnpm install --frozen-lockfile` (D1). No override and no change to `package.json` or `pnpm-workspace.yaml`. Commit `build(deps): Bump fast-uri to 3.1.9` (D8).
@@ -24,8 +24,9 @@ changes GitHub's state, because that change is outward-facing.
     - `pnpm why fast-uri` shows only 3.1.9;
     - `git diff main -- pnpm-lock.yaml` touches only `fast-uri` lines (3 hunks);
     - `git diff main -- package.json pnpm-workspace.yaml` is empty.
+  - Run on 2026-10-28: before the change, `pnpm why fast-uri` showed 3.1.8. After it, it shows only 3.1.9 ("Found 1 version of fast-uri"). The lockfile diff is 4 lines in 3 hunks, all `fast-uri`. The `package.json` and `pnpm-workspace.yaml` diff is empty.
 
-- [ ] **T03 — Accept CVE-2025-60876 in the exceptions file**
+- [x] **T03 — Accept CVE-2025-60876 in the exceptions file**
   - **RF:** RF-05, RF-06, RF-07
   - **Depends on:** T01 (can run in parallel with T02)
   - **Scope:** Add to `.github/sca-exceptions.json` one entry `{ "id": "CVE-2025-60876", "reason": …, "expires": "2027-01-26" }`, with the reason of the plan's `sca-exceptions.json` row (D2). `scripts/` stays unchanged (D3). E3 uses a minimal Grype JSON fixture in the scratchpad, not in the repo. Commit `ci(sca): Accept CVE-2025-60876 until 2027-01-26` (D8).
@@ -34,6 +35,12 @@ changes GitHub's state, because that change is outward-facing.
     - E3 with `SCA_GATE_TODAY=2027-01-27`: it is `reported`, _Expired exceptions_ names the entry and the exit code is 0.
     - E3 with an `--exceptions` copy that has no `reason`: the exit code is 1.
     - `node --test scripts/` passes, U-SG-5 to U-SG-9 included.
+  - Run on 2026-10-28, with a fixture of two matches (`busybox` and `ssl_client`, Medium, `not-fixed`):
+    - before the entry, both matches were `reported`;
+    - after it, both are `excepted` and the exit code is 0;
+    - with `SCA_GATE_TODAY=2027-01-27`, both are `reported`, _Expired exceptions_ names the entry and the exit code is 0;
+    - without `reason`, the summary shows "#1 (CVE-2025-60876): missing reason" and the exit code is 1;
+    - `node --test scripts/` passes 26/26.
 
 ## Phase 2 — Quality gate and version
 
