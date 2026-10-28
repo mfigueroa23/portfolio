@@ -44,7 +44,7 @@ changes GitHub's state, because that change is outward-facing.
 
 ## Phase 2 — Quality gate and version
 
-- [ ] **T04 — Quality gate**
+- [x] **T04 — Quality gate**
   - **RF:** RF-10
   - **Depends on:** T02, T03
   - **Scope:** Run the closing checklist of `AGENTS.md` on the branch.
@@ -52,8 +52,13 @@ changes GitHub's state, because that change is outward-facing.
     - `pnpm test --watch=false`, `pnpm build` (no exceeded budgets), `scripts/check-ssr-csp.sh` and `node --test scripts/` pass.
     - `pnpm exec prettier --check docs/specs/010-security-alerts-cleanup .github/sca-exceptions.json` is clean.
     - E7: `git diff main -- .github/codeql` is empty.
+  - Run on 2026-10-28:
+    - `pnpm test --watch=false` passes 596 tests in 62 files.
+    - `pnpm build` exits 0 with no budget errors or warnings. Its 9 "is not ESM" warnings come from `mermaid@12.2.0`, already on `main`.
+    - `scripts/check-ssr-csp.sh` ends with "The generated CSP covers every inline script of the SSR pages."
+    - `node --test scripts/` passes 26/26, Prettier is clean, and E7 is empty.
 
-- [ ] **T05 — Bump the version to 4.5.6**
+- [x] **T05 — Bump the version to 4.5.6**
   - **RF:** RF-02
   - **Depends on:** T04
   - **Scope:** `version` 4.5.5 → 4.5.6 in `package.json`, committed as `chore(release): Bump version to v4.5.6` (D7, D8).
