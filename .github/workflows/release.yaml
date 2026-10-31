@@ -188,7 +188,7 @@ jobs:
       # imagetools copies each manifest list as is, so Docker Hub gets the scanned digests.
       - name: 'Publish Images'
         env:
-          REPOSITORY: ${{ vars.DOCKERHUB_USERNAME }}
+          REPOSITORY: ${{ secrets.DOCKERHUB_ORGANIZATION }}
           VERSION: ${{ steps.version.outputs.value }}
           DIGEST: ${{ steps.build.outputs.digest }}
           SSR_DIGEST: ${{ steps.build-ssr.outputs.digest }}
@@ -213,7 +213,7 @@ jobs:
       - name: 'Generate SBOMs'
         env:
           SYFT: ${{ steps.syft.outputs.cmd }}
-          REPOSITORY: ${{ vars.DOCKERHUB_USERNAME }}
+          REPOSITORY: ${{ secrets.DOCKERHUB_ORGANIZATION }}
           VERSION: ${{ steps.version.outputs.value }}
           DIGEST: ${{ steps.build.outputs.digest }}
           SSR_DIGEST: ${{ steps.build-ssr.outputs.digest }}
@@ -258,7 +258,7 @@ jobs:
         uses: steebchen/kubectl@7c4c70d551952e40881998b840e16d4d9824a54f # v2.1.1
         with:
           config: ${{ secrets.KUBE_CONFIG }}
-          command: set image deployment/portfolio portfolio=${{ vars.DOCKERHUB_USERNAME }}/portfolio@${{ needs.package.outputs.digest }} ssr=${{ vars.DOCKERHUB_USERNAME }}/portfolio-ssr@${{ needs.package.outputs.ssr-digest }} -n portfolio
+          command: set image deployment/portfolio portfolio=${{ secrets.DOCKERHUB_ORGANIZATION }}/portfolio@${{ needs.package.outputs.digest }} ssr=${{ secrets.DOCKERHUB_ORGANIZATION }}/portfolio-ssr@${{ needs.package.outputs.ssr-digest }} -n portfolio
 
       - name: 'Verify Deployment'
         uses: steebchen/kubectl@7c4c70d551952e40881998b840e16d4d9824a54f # v2.1.1
