@@ -1,7 +1,7 @@
 # Stage 0: build the app. It runs on the build platform (--platform=$BUILDPLATFORM): the output
 # is JavaScript and HTML, the same for every target platform, so it is built once and natively.
 # An empty API_URL or AGENT_URL (unset CI secret) falls back to production (scripts/ng.mjs).
-FROM --platform=$BUILDPLATFORM node:26-alpine@sha256:40cd011b55415bc894e45b02fdd5a5dfde056921b7d23a64c74f80497af48797 AS build
+FROM --platform=$BUILDPLATFORM node:26-alpine@sha256:c6ad9e9c1d80f6eb607c26b4b0a132ff7a2344fad1c78ea3baa2a7d4c8de6d94 AS build
 RUN npm install -g pnpm@12.6.0
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
@@ -16,7 +16,7 @@ RUN pnpm build
 # their own CSP hashes. The scripts depend on the page components, not on the content. It
 # runs once, on the build platform: run per target platform in parallel, the renders shared
 # the builder's network (release 4.0.0 failed on a port collision).
-FROM --platform=$BUILDPLATFORM node:26-alpine@sha256:40cd011b55415bc894e45b02fdd5a5dfde056921b7d23a64c74f80497af48797 AS ssr-pages
+FROM --platform=$BUILDPLATFORM node:26-alpine@sha256:c6ad9e9c1d80f6eb607c26b4b0a132ff7a2344fad1c78ea3baa2a7d4c8de6d94 AS ssr-pages
 COPY --from=build /app/dist/devsonic.cl/server /app/server
 COPY --from=build /app/dist/devsonic.cl/browser /app/browser
 COPY docker/render-ssr-pages.mjs /app/
@@ -43,7 +43,7 @@ RUN origin() { perl -e '$ARGV[0] =~ m{^(https?://[A-Za-z0-9.-]+(?::[0-9]+)?)(?:/
 
 # Target `ssr`: the Node server rendering /projects, /experience and /blog on demand. It runs as
 # a sidecar of the `static` container in the same pod; nginx proxies those paths to port 4000.
-FROM node:26-alpine@sha256:40cd011b55415bc894e45b02fdd5a5dfde056921b7d23a64c74f80497af48797 AS ssr
+FROM node:26-alpine@sha256:c6ad9e9c1d80f6eb607c26b4b0a132ff7a2344fad1c78ea3baa2a7d4c8de6d94 AS ssr
 ENV NODE_ENV=production PORT=4000
 # Alpine fixes published after the base image, and no npm/npx: the server only runs `node`, and
 # the bundled npm only adds packages to scan and patch (Spec 009, release image scan).
