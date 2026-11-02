@@ -60,7 +60,7 @@ CMD ["node", "server/server.mjs"]
 
 # Target `static` (default, last stage): unprivileged nginx serving the prerendered build and
 # proxying the server-rendered paths to the `ssr` sidecar.
-FROM nginx:stable-alpine@sha256:47928bf67eb62a1863cb08d9ecb52d3e704304ba614eaee17884204677702951 AS static
+FROM nginx:stable-alpine@sha256:0e52bd054126cdc040b1276c0af347aeb02a41b9cfe305d6094767ac30e97949 AS static
 # Alpine fixes published after the base image (Spec 009, release image scan).
 RUN apk upgrade --no-cache \
  && rm -rf /etc/nginx/conf.d/* /etc/nginx/templates /usr/share/nginx/html/*
